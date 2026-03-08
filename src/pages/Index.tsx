@@ -4,11 +4,13 @@ import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import { getGreeting } from "@/lib/voidx";
 import { toast } from "sonner";
+import { useAmbientSound } from "@/hooks/useAmbientSound";
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  isNew?: boolean;
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voidx-chat`;
@@ -19,6 +21,7 @@ const Index = () => {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { playGlitchSound } = useAmbientSound();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -31,20 +34,27 @@ const Index = () => {
     setIsTyping(true);
 
     let assistantSoFar = "";
+    let soundPlayed = false;
 
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
+
+      // Play glitch sound on first token
+      if (!soundPlayed) {
+        soundPlayed = true;
+        playGlitchSound();
+      }
+
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.id === "streaming") {
           return prev.map((m) => m.id === "streaming" ? { ...m, content: assistantSoFar } : m);
         }
-        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar }];
+        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar, isNew: true }];
       });
     };
 
     try {
-      // Send only role+content for the API
       const apiMessages = newMessages.map(({ role, content }) => ({ role, content }));
 
       const resp = await fetch(CHAT_URL, {
@@ -99,24 +109,23 @@ const Index = () => {
         }
       }
 
-      // Finalize the streaming message with a stable ID
       setMessages((prev) =>
         prev.map((m) => m.id === "streaming" ? { ...m, id: Date.now().toString() } : m)
       );
     } catch (err) {
       console.error("Stream error:", err);
-      toast.error("Connection lost. Even the internet doesn't want to deal with you. 💀");
+      toast.error("Connection lost. Even the void rejects you. 💀");
     } finally {
       setIsTyping(false);
     }
-  }, [messages]);
+  }, [messages, playGlitchSound]);
 
   return (
     <div className="flex flex-col h-screen bg-background relative scanlines overflow-hidden">
       <VoidHeader />
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
+          <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} />
         ))}
         {isTyping && !messages.some(m => m.id === "streaming") && (
           <div className="px-4 py-3 flex gap-3 animate-fade-in">
@@ -124,7 +133,7 @@ const Index = () => {
               VX
             </div>
             <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
-              <span className="blink-cursor">processing your stupidity</span>
+              <span className="blink-cursor">watching...</span>
             </div>
           </div>
         )}

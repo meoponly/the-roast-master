@@ -1,1 +1,4 @@
 project_id = "adogjiwxkmpikadszhbo"
+
+[functions.voidx-chat]
+verify_jwt = false

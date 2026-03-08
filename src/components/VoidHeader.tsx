@@ -9,12 +9,12 @@ const VoidHeader = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span>STATUS: <span className="text-accent red-glow-text">HOSTILE</span></span>
-          <span className="hidden sm:inline">API CREDITS: <span className="text-foreground">$0.50/ROAST</span></span>
+          <span>STATUS: <span className="text-accent red-glow-text">SAVAGE</span></span>
+          <span className="hidden sm:inline">FILTER: <span className="text-foreground">ZERO</span></span>
         </div>
       </div>
       <p className="mt-1 text-xs text-muted-foreground font-mono">
-        // hyper-intelligent • zero filters • PhD in roasting
+        // cold desi savage • zero filters • PhD in judging
       </p>
     </header>
   );

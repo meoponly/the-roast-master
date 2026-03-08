@@ -3,16 +3,18 @@ import { cn } from "@/lib/utils";
 type ChatMessageProps = {
   role: "user" | "assistant";
   content: string;
+  isNew?: boolean;
 };
 
-const ChatMessage = ({ role, content }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, isNew }: ChatMessageProps) => {
   const isUser = role === "user";
 
   return (
     <div
       className={cn(
-        "animate-fade-in flex gap-3 px-4 py-3",
-        isUser ? "justify-end" : "justify-start"
+        "flex gap-3 px-4 py-3",
+        isUser ? "justify-end animate-fade-in" : "justify-start",
+        !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}
     >
       {!isUser && (

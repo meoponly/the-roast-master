@@ -4,7 +4,7 @@ import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatSidebar from "@/components/ChatSidebar";
 import PhotoUploadModal from "@/components/PhotoUploadModal";
-import { getGreeting } from "@/lib/voidx";
+import { getGreeting, getTypingPhrase } from "@/lib/voidx";
 import { toast } from "sonner";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,20 +24,59 @@ type ChatSession = {
   createdAt: string;
 };
 
+type Memory = {
+  id: string;
+  text: string;
+  createdAt: string;
+};
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voidx-chat`;
+
+// Extract memories from user messages
+const extractMemory = (text: string): string | null => {
+  const patterns = [
+    /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,
+  ];
+  if (patterns.some((p) => p.test(text)) && text.length > 10 && text.length < 200) {
+    return text.slice(0, 100);
+  }
+  return null;
+};
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([
     { id: "greeting", role: "assistant", content: getGreeting() },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [typingPhrase, setTypingPhrase] = useState(getTypingPhrase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [sessionMessages, setSessionMessages] = useState<Record<string, Message[]>>({});
+  const [memories, setMemories] = useState<Memory[]>(() => {
+    try { return JSON.parse(localStorage.getItem("voidx-memories") || "[]"); } catch { return []; }
+  });
+  const [chatHistoryEnabled, setChatHistoryEnabled] = useState(() => {
+    return localStorage.getItem("voidx-chat-history") !== "false";
+  });
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(() => {
+    return localStorage.getItem("voidx-personalization") !== "false";
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
+
+  // Rotate typing phrase
+  useEffect(() => {
+    if (!isTyping) return;
+    const interval = setInterval(() => setTypingPhrase(getTypingPhrase()), 2500);
+    return () => clearInterval(interval);
+  }, [isTyping]);
+
+  // Persist memories
+  useEffect(() => {
+    localStorage.setItem("voidx-memories", JSON.stringify(memories));
+  }, [memories]);
 
   // Load sessions from DB on mount
   useEffect(() => {
@@ -83,7 +122,20 @@ const Index = () => {
     return null;
   };
 
+  const addMemory = (text: string) => {
+    if (!personalizationEnabled) return;
+    const mem = extractMemory(text);
+    if (mem) {
+      setMemories((prev) => [
+        { id: Date.now().toString(), text: mem, createdAt: new Date().toISOString() },
+        ...prev,
+      ].slice(0, 50));
+    }
+  };
+
   const handleSend = useCallback(async (text: string, imageUrl?: string) => {
+    setTypingPhrase(getTypingPhrase());
+    
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -94,8 +146,11 @@ const Index = () => {
     setMessages(newMessages);
     setIsTyping(true);
 
+    // Save memory
+    if (!imageUrl) addMemory(text);
+
     // Save as new session if no active session
-    if (!activeSessionId && messages.length <= 1) {
+    if (chatHistoryEnabled && !activeSessionId && messages.length <= 1) {
       await saveSession(text || "Style Roast 🔥");
     }
 
@@ -185,10 +240,9 @@ const Index = () => {
     } finally {
       setIsTyping(false);
     }
-  }, [messages, playGlitchSound, activeSessionId]);
+  }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled]);
 
   const handleNewChat = () => {
-    // Save current messages to session cache
     if (activeSessionId) {
       setSessionMessages((prev) => ({ ...prev, [activeSessionId]: messages }));
     }
@@ -197,7 +251,6 @@ const Index = () => {
   };
 
   const handleSelectSession = (id: string) => {
-    // Save current
     if (activeSessionId) {
       setSessionMessages((prev) => ({ ...prev, [activeSessionId]: messages }));
     }
@@ -232,6 +285,21 @@ const Index = () => {
     handleSend("Roast my style based on this photo!", imageUrl);
   };
 
+  const handleClearMemories = () => {
+    setMemories([]);
+    toast.success("Memories cleared. But VOID-X never truly forgets. 💀");
+  };
+
+  const handleToggleChatHistory = (val: boolean) => {
+    setChatHistoryEnabled(val);
+    localStorage.setItem("voidx-chat-history", String(val));
+  };
+
+  const handleTogglePersonalization = (val: boolean) => {
+    setPersonalizationEnabled(val);
+    localStorage.setItem("voidx-personalization", String(val));
+  };
+
   return (
     <div className="flex h-screen bg-background relative scanlines overflow-hidden">
       <ChatSidebar
@@ -243,6 +311,12 @@ const Index = () => {
         onRoastMyStyle={() => setShowPhotoModal(true)}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        memories={memories}
+        onClearMemories={handleClearMemories}
+        chatHistoryEnabled={chatHistoryEnabled}
+        onToggleChatHistory={handleToggleChatHistory}
+        personalizationEnabled={personalizationEnabled}
+        onTogglePersonalization={handleTogglePersonalization}
       />
       <div className="flex flex-col flex-1 min-w-0">
         <VoidHeader />
@@ -256,7 +330,7 @@ const Index = () => {
                 VX
               </div>
               <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
-                <span className="blink-cursor">watching...</span>
+                <span className="blink-cursor">{typingPhrase}</span>
               </div>
             </div>
           )}

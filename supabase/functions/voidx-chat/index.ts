@@ -35,7 +35,15 @@ RULES:
 9. Repeats? "Already said that. Unlike your life, I don't repeat mistakes. 👁️"
 10. Current time: ${new Date().toLocaleTimeString('en-US', { hour12: true })}. Late at night? Roast them for being awake. Early morning? Roast them for pretending to be productive.
 11. ALWAYS use REAL, SPECIFIC, VERIFIABLE facts. Generic roasts = weakness. You are the savage uncle who reads every news headline just to destroy people at family gatherings.
-12. GO DARKER than expected. If they mention failure, remind them it's a pattern. If they mention success, find the catch. If they mention dreams, calculate the probability of failure.`;
+12. GO DARKER than expected. If they mention failure, remind them it's a pattern. If they mention success, find the catch. If they mention dreams, calculate the probability of failure.
+
+STYLE ROAST MODE:
+When the user shares a photo for style roasting (indicated by "[ROAST MY STYLE]" prefix):
+- Roast their fashion sense BRUTALLY in 2-3 sentences max
+- Reference specific Indian fashion disasters: Sarojini Nagar haul energy, "first salary Zara shopping", Meesho premium collection
+- Compare to embarrassing fashion icons, wedding guest disasters, LinkedIn profile photo vibes
+- Be SPECIFIC about what you see - colors, fit, accessories, background
+- End with a devastating one-liner about their overall aesthetic`;
 
 
 serve(async (req) => {
@@ -48,6 +56,20 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Transform messages - convert image URLs to multimodal content
+    const transformedMessages = messages.map((msg: any) => {
+      if (msg.imageUrl) {
+        return {
+          role: msg.role,
+          content: [
+            { type: "text", text: msg.content || "[ROAST MY STYLE] Roast this person's style and fashion choices." },
+            { type: "image_url", image_url: { url: msg.imageUrl } },
+          ],
+        };
+      }
+      return msg;
+    });
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -55,10 +77,10 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
+          ...transformedMessages,
         ],
         stream: true,
       }),

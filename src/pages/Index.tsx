@@ -329,7 +329,7 @@ const Index = () => {
         <VoidHeader />
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} />
+            <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
           ))}
           {isTyping && !messages.some(m => m.id === "streaming") && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">

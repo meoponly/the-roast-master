@@ -1,12 +1,14 @@
 import { cn } from "@/lib/utils";
+import { Flame } from "lucide-react";
 
 type ChatMessageProps = {
   role: "user" | "assistant";
   content: string;
   isNew?: boolean;
+  imageUrl?: string;
 };
 
-const ChatMessage = ({ role, content, isNew }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, isNew, imageUrl }: ChatMessageProps) => {
   const isUser = role === "user";
 
   return (
@@ -30,6 +32,15 @@ const ChatMessage = ({ role, content, isNew }: ChatMessageProps) => {
             : "bg-card text-foreground border border-border"
         )}
       >
+        {imageUrl && (
+          <div className="mb-2 relative">
+            <img src={imageUrl} alt="Uploaded style" className="rounded max-h-48 object-cover border border-border" />
+            <div className="absolute top-1 left-1 bg-accent/90 text-accent-foreground text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+              <Flame className="w-2.5 h-2.5" />
+              STYLE ROAST
+            </div>
+          </div>
+        )}
         <p className="whitespace-pre-wrap">{content}</p>
       </div>
       {isUser && (

@@ -42,6 +42,12 @@ const ChatSidebar = ({
   onRoastMyStyle,
   collapsed,
   onToggle,
+  memories,
+  onClearMemories,
+  chatHistoryEnabled,
+  onToggleChatHistory,
+  personalizationEnabled,
+  onTogglePersonalization,
 }: ChatSidebarProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 

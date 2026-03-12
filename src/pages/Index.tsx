@@ -157,6 +157,7 @@ const Index = () => {
 
     let assistantSoFar = "";
     let soundPlayed = false;
+    let editedImg: string | null = null;
 
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
@@ -167,9 +168,9 @@ const Index = () => {
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.id === "streaming") {
-          return prev.map((m) => m.id === "streaming" ? { ...m, content: assistantSoFar } : m);
+          return prev.map((m) => m.id === "streaming" ? { ...m, content: assistantSoFar, editedImageUrl: editedImg || undefined } : m);
         }
-        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar, isNew: true }];
+        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar, isNew: true, editedImageUrl: editedImg || undefined }];
       });
     };
 

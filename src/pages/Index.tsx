@@ -224,6 +224,11 @@ const Index = () => {
 
           try {
             const parsed = JSON.parse(jsonStr);
+            // Check for edited image event
+            if (parsed.editedImage) {
+              editedImg = parsed.editedImage;
+              continue;
+            }
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) upsertAssistant(content);
           } catch {

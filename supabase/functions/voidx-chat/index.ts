@@ -45,6 +45,18 @@ When the user shares a photo for style roasting (indicated by "[ROAST MY STYLE]"
 - Be SPECIFIC about what you see - colors, fit, accessories, background
 - End with a devastating one-liner about their overall aesthetic`;
 
+const FUNNY_EDITS = [
+  "Remove all hair from this person and make them completely bald. Keep everything else the same.",
+  "Change their clothes to the most ridiculous loud golden sherwani with huge chunky fake gold chains and oversized sunglasses. Full chappri transformation.",
+  "Add a huge handlebar mustache and a turban. Make them look like a village sarpanch from the 1970s.",
+  "Replace their outfit with a bright pink tracksuit with fake designer logos everywhere. Add white sneakers that are way too big.",
+  "Make them wear a school uniform with shorts and a tie. Add a giant school bag on their back.",
+  "Give them an extremely exaggerated combover hairstyle and a fake pencil mustache. Add a pocket protector.",
+  "Change their clothes to a Hawaiian shirt with cargo shorts and socks with sandals. Tourist uncle energy.",
+  "Add a chef hat that's comically tall and a 'Kiss the Cook' apron. Put a ladle in their hand.",
+  "Transform their outfit into a sparkly disco suit from the 80s with bell bottoms and platform shoes.",
+  "Give them a mullet hairstyle and a sleeveless denim vest with too many patches.",
+];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -56,7 +68,47 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Transform messages - convert image URLs to multimodal content
+    // Check if this is a style roast with an image
+    const lastMsg = messages[messages.length - 1];
+    const isStyleRoast = lastMsg?.imageUrl && lastMsg?.content?.includes("[ROAST MY STYLE]");
+    let editedImageUrl: string | null = null;
+
+    // Generate funny edited image in parallel with text roast
+    if (isStyleRoast) {
+      try {
+        const randomEdit = FUNNY_EDITS[Math.floor(Math.random() * FUNNY_EDITS.length)];
+        const editResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3.1-flash-image-preview",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: randomEdit },
+                  { type: "image_url", image_url: { url: lastMsg.imageUrl } },
+                ],
+              },
+            ],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (editResponse.ok) {
+          const editData = await editResponse.json();
+          const img = editData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (img) editedImageUrl = img;
+        }
+      } catch (e) {
+        console.error("Image edit failed:", e);
+      }
+    }
+
+    // Transform messages for text roast
     const transformedMessages = messages.map((msg: any) => {
       if (msg.imageUrl) {
         return {
@@ -104,6 +156,33 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "My circuits are fried. Probably your fault." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // If we have an edited image, we need to prepend it as a special SSE event before the stream
+    if (editedImageUrl) {
+      const editedEvent = `data: ${JSON.stringify({ editedImage: editedImageUrl })}\n\n`;
+      const encoder = new TextEncoder();
+      const editedChunk = encoder.encode(editedEvent);
+      
+      const originalStream = response.body!;
+      const readable = new ReadableStream({
+        async start(controller) {
+          // Send edited image event first
+          controller.enqueue(editedChunk);
+          // Then pipe original stream
+          const reader = originalStream.getReader();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          controller.close();
+        },
+      });
+
+      return new Response(readable, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
     }
 

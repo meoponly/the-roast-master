@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SettingsPanel from "@/components/SettingsPanel";
+
+type Memory = {
+  id: string;
+  text: string;
+  createdAt: string;
+};
 
 type ChatSession = {
   id: string;
@@ -18,6 +25,12 @@ type ChatSidebarProps = {
   onRoastMyStyle: () => void;
   collapsed: boolean;
   onToggle: () => void;
+  memories: Memory[];
+  onClearMemories: () => void;
+  chatHistoryEnabled: boolean;
+  onToggleChatHistory: (val: boolean) => void;
+  personalizationEnabled: boolean;
+  onTogglePersonalization: (val: boolean) => void;
 };
 
 const ChatSidebar = ({

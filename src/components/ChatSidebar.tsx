@@ -1,6 +1,13 @@
 import { useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SettingsPanel from "@/components/SettingsPanel";
+
+type Memory = {
+  id: string;
+  text: string;
+  createdAt: string;
+};
 
 type ChatSession = {
   id: string;
@@ -18,6 +25,12 @@ type ChatSidebarProps = {
   onRoastMyStyle: () => void;
   collapsed: boolean;
   onToggle: () => void;
+  memories: Memory[];
+  onClearMemories: () => void;
+  chatHistoryEnabled: boolean;
+  onToggleChatHistory: (val: boolean) => void;
+  personalizationEnabled: boolean;
+  onTogglePersonalization: (val: boolean) => void;
 };
 
 const ChatSidebar = ({
@@ -29,6 +42,12 @@ const ChatSidebar = ({
   onRoastMyStyle,
   collapsed,
   onToggle,
+  memories,
+  onClearMemories,
+  chatHistoryEnabled,
+  onToggleChatHistory,
+  personalizationEnabled,
+  onTogglePersonalization,
 }: ChatSidebarProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -61,10 +80,23 @@ const ChatSidebar = ({
   }
 
   return (
-    <div className="flex flex-col border-r border-border bg-card/50 w-64 shrink-0 transition-all">
+    <div className="relative flex flex-col border-r border-border bg-card/50 w-64 shrink-0 transition-all">
+      {/* Settings overlay */}
+      <SettingsPanel
+        memories={memories}
+        onClearMemories={onClearMemories}
+        chatHistoryEnabled={chatHistoryEnabled}
+        onToggleChatHistory={onToggleChatHistory}
+        personalizationEnabled={personalizationEnabled}
+        onTogglePersonalization={onTogglePersonalization}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border">
-        <span className="text-xs font-bold text-foreground neon-text tracking-wider">CHAT HISTORY</span>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-accent animate-pulse" />
+          <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
+        </div>
         <button
           onClick={onToggle}
           className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"

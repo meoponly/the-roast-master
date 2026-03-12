@@ -15,6 +15,7 @@ type Message = {
   content: string;
   isNew?: boolean;
   imageUrl?: string;
+  editedImageUrl?: string;
 };
 
 type ChatSession = {

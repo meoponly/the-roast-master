@@ -64,8 +64,26 @@ const Index = () => {
   const [personalizationEnabled, setPersonalizationEnabled] = useState(() => {
     return localStorage.getItem("voidx-personalization") !== "false";
   });
+  const [userProfile, setUserProfile] = useState({ displayName: "User", handle: "@user", avatarUrl: null as string | null });
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (profile) {
+        setUserProfile({
+          displayName: profile.display_name || user.email?.split("@")[0] || "User",
+          handle: profile.handle || `@${user.email?.split("@")[0]}`,
+          avatarUrl: profile.avatar_url || null,
+        });
+      }
+    };
+    loadProfile();
+  }, []);
 
   // Rotate typing phrase
   useEffect(() => {

@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera, Settings } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Plus, MessageSquare, Trash2, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SettingsPanel from "@/components/SettingsPanel";
+import PersonalizationPanel from "@/components/PersonalizationPanel";
+import ProfileMenu from "@/components/ProfileMenu";
 
 type Memory = {
   id: string;
@@ -14,6 +16,12 @@ type ChatSession = {
   title: string;
   firstMessage?: string;
   createdAt: string;
+};
+
+type UserProfile = {
+  displayName: string;
+  handle: string;
+  avatarUrl: string | null;
 };
 
 type ChatSidebarProps = {
@@ -31,6 +39,9 @@ type ChatSidebarProps = {
   onToggleChatHistory: (val: boolean) => void;
   personalizationEnabled: boolean;
   onTogglePersonalization: (val: boolean) => void;
+  userProfile: UserProfile;
+  onLogout: () => void;
+  onDeleteAllData: () => void;
 };
 
 const ChatSidebar = ({
@@ -48,8 +59,13 @@ const ChatSidebar = ({
   onToggleChatHistory,
   personalizationEnabled,
   onTogglePersonalization,
+  userProfile,
+  onLogout,
+  onDeleteAllData,
 }: ChatSidebarProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [personalizationOpen, setPersonalizationOpen] = useState(false);
 
   if (collapsed) {
     return (
@@ -75,6 +91,18 @@ const ChatSidebar = ({
         >
           <Camera className="w-4 h-4" />
         </button>
+        <div className="flex-1" />
+        <div className="mb-1">
+          <ProfileMenu
+            displayName={userProfile.displayName}
+            handle={userProfile.handle}
+            avatarUrl={userProfile.avatarUrl}
+            onOpenSettings={() => { onToggle(); setTimeout(() => setSettingsOpen(true), 100); }}
+            onOpenPersonalization={() => { onToggle(); setTimeout(() => setPersonalizationOpen(true), 100); }}
+            onLogout={onLogout}
+            collapsed
+          />
+        </div>
       </div>
     );
   }
@@ -87,8 +115,17 @@ const ChatSidebar = ({
         onClearMemories={onClearMemories}
         chatHistoryEnabled={chatHistoryEnabled}
         onToggleChatHistory={onToggleChatHistory}
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onDeleteAllData={onDeleteAllData}
+      />
+
+      {/* Personalization overlay */}
+      <PersonalizationPanel
         personalizationEnabled={personalizationEnabled}
         onTogglePersonalization={onTogglePersonalization}
+        open={personalizationOpen}
+        onClose={() => setPersonalizationOpen(false)}
       />
 
       {/* Header */}
@@ -162,11 +199,16 @@ const ChatSidebar = ({
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-border">
-        <p className="text-[10px] text-muted-foreground text-center">
-          VOID-X • v0.6.6.6
-        </p>
+      {/* Profile at bottom */}
+      <div className="p-2 border-t border-border">
+        <ProfileMenu
+          displayName={userProfile.displayName}
+          handle={userProfile.handle}
+          avatarUrl={userProfile.avatarUrl}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenPersonalization={() => setPersonalizationOpen(true)}
+          onLogout={onLogout}
+        />
       </div>
     </div>
   );

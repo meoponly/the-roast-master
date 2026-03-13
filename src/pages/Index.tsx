@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import VoidHeader from "@/components/VoidHeader";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
@@ -64,8 +65,26 @@ const Index = () => {
   const [personalizationEnabled, setPersonalizationEnabled] = useState(() => {
     return localStorage.getItem("voidx-personalization") !== "false";
   });
+  const [userProfile, setUserProfile] = useState({ displayName: "User", handle: "@user", avatarUrl: null as string | null });
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (profile) {
+        setUserProfile({
+          displayName: profile.display_name || user.email?.split("@")[0] || "User",
+          handle: profile.handle || `@${user.email?.split("@")[0]}`,
+          avatarUrl: profile.avatar_url || null,
+        });
+      }
+    };
+    loadProfile();
+  }, []);
 
   // Rotate typing phrase
   useEffect(() => {
@@ -104,9 +123,10 @@ const Index = () => {
 
   const saveSession = async (firstMsg: string) => {
     const title = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? "..." : "");
+    const { data: { user } } = await supabase.auth.getUser();
     const { data } = await supabase
       .from("chat_sessions")
-      .insert({ title, first_message: firstMsg })
+      .insert({ title, first_message: firstMsg, user_id: user?.id })
       .select()
       .single();
     if (data) {
@@ -307,6 +327,26 @@ const Index = () => {
     localStorage.setItem("voidx-personalization", String(val));
   };
 
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  const handleDeleteAllData = async () => {
+    // Delete all sessions
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("chat_sessions").delete().eq("user_id", user.id);
+    }
+    setSessions([]);
+    setSessionMessages({});
+    setMemories([]);
+    localStorage.removeItem("voidx-memories");
+    handleNewChat();
+  };
+
   return (
     <div className="flex h-screen bg-background relative scanlines overflow-hidden">
       <ChatSidebar
@@ -324,6 +364,9 @@ const Index = () => {
         onToggleChatHistory={handleToggleChatHistory}
         personalizationEnabled={personalizationEnabled}
         onTogglePersonalization={handleTogglePersonalization}
+        userProfile={userProfile}
+        onLogout={handleLogout}
+        onDeleteAllData={handleDeleteAllData}
       />
       <div className="flex flex-col flex-1 min-w-0">
         <VoidHeader />

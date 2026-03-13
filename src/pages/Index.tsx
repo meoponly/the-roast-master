@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import VoidHeader from "@/components/VoidHeader";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatSidebar from "@/components/ChatSidebar";
 import PhotoUploadModal from "@/components/PhotoUploadModal";
-import { getGreeting, getTypingPhrase } from "@/lib/voidx";
+import { getGreeting, getTypingPhrase, getEmptyChatPhrase } from "@/lib/voidx";
 import { toast } from "sonner";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { supabase } from "@/integrations/supabase/client";
+import voidxLogo from "@/assets/voidx-logo.png";
 
 type Message = {
   id: string;
@@ -34,7 +34,6 @@ type Memory = {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voidx-chat`;
 
-// Extract memories from user messages
 const extractMemory = (text: string): string | null => {
   const patterns = [
     /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,
@@ -46,9 +45,7 @@ const extractMemory = (text: string): string | null => {
 };
 
 const Index = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "greeting", role: "assistant", content: getGreeting() },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [typingPhrase, setTypingPhrase] = useState(getTypingPhrase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -66,10 +63,12 @@ const Index = () => {
     return localStorage.getItem("voidx-personalization") !== "false";
   });
   const [userProfile, setUserProfile] = useState({ displayName: "User", handle: "@user", avatarUrl: null as string | null });
+  const [emptyChatPhrase] = useState(getEmptyChatPhrase());
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
 
-  // Load user profile
+  const hasMessages = messages.length > 0;
+
   useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -86,19 +85,16 @@ const Index = () => {
     loadProfile();
   }, []);
 
-  // Rotate typing phrase
   useEffect(() => {
     if (!isTyping) return;
     const interval = setInterval(() => setTypingPhrase(getTypingPhrase()), 2500);
     return () => clearInterval(interval);
   }, [isTyping]);
 
-  // Persist memories
   useEffect(() => {
     localStorage.setItem("voidx-memories", JSON.stringify(memories));
   }, [memories]);
 
-  // Load sessions from DB on mount
   useEffect(() => {
     const loadSessions = async () => {
       const { data } = await supabase
@@ -156,7 +152,7 @@ const Index = () => {
 
   const handleSend = useCallback(async (text: string, imageUrl?: string) => {
     setTypingPhrase(getTypingPhrase());
-    
+
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -167,11 +163,9 @@ const Index = () => {
     setMessages(newMessages);
     setIsTyping(true);
 
-    // Save memory
     if (!imageUrl) addMemory(text);
 
-    // Save as new session if no active session
-    if (chatHistoryEnabled && !activeSessionId && messages.length <= 1) {
+    if (chatHistoryEnabled && !activeSessionId && messages.length === 0) {
       await saveSession(text || "Style Roast 🔥");
     }
 
@@ -244,7 +238,6 @@ const Index = () => {
 
           try {
             const parsed = JSON.parse(jsonStr);
-            // Check for edited image event
             if (parsed.editedImage) {
               editedImg = parsed.editedImage;
               continue;
@@ -274,7 +267,7 @@ const Index = () => {
       setSessionMessages((prev) => ({ ...prev, [activeSessionId]: messages }));
     }
     setActiveSessionId(null);
-    setMessages([{ id: "greeting", role: "assistant", content: getGreeting() }]);
+    setMessages([]);
   };
 
   const handleSelectSession = (id: string) => {
@@ -287,10 +280,9 @@ const Index = () => {
       setMessages(cached);
     } else {
       const session = sessions.find((s) => s.id === id);
-      setMessages([
-        { id: "greeting", role: "assistant", content: getGreeting() },
-        ...(session?.firstMessage ? [{ id: "restored", role: "user" as const, content: session.firstMessage }] : []),
-      ]);
+      setMessages(
+        session?.firstMessage ? [{ id: "restored", role: "user" as const, content: session.firstMessage }] : []
+      );
     }
   };
 
@@ -335,7 +327,6 @@ const Index = () => {
   };
 
   const handleDeleteAllData = async () => {
-    // Delete all sessions
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from("chat_sessions").delete().eq("user_id", user.id);
@@ -369,15 +360,27 @@ const Index = () => {
         onDeleteAllData={handleDeleteAllData}
       />
       <div className="flex flex-col flex-1 min-w-0">
-        <VoidHeader />
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
+          {/* Empty chat greeting */}
+          {!hasMessages && !isTyping && (
+            <div className="flex flex-col items-center justify-center h-full animate-fade-in">
+              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60" />
+              <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
+                VOID-X
+              </h1>
+              <p className="text-xs text-muted-foreground font-mono max-w-xs text-center">
+                {emptyChatPhrase}
+              </p>
+            </div>
+          )}
+
           {messages.map((msg) => (
             <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
           ))}
           {isTyping && !messages.some(m => m.id === "streaming") && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded bg-accent/20 border border-accent/40 flex items-center justify-center text-accent text-xs font-bold">
-                VX
+              <div className="w-8 h-8 rounded bg-accent/20 border border-accent/40 flex items-center justify-center">
+                <img src={voidxLogo} alt="VX" className="w-5 h-5" />
               </div>
               <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
                 <span className="blink-cursor">{typingPhrase}</span>

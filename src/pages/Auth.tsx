@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import voidxLogo from "@/assets/voidx-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,8 +23,7 @@ const Auth = () => {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast.success("Account created! You're in. 💀");
-        navigate("/");
+        toast.success("Check your email to confirm your account! 💀");
       }
     } catch (err: any) {
       toast.error(err.message || "Auth failed");
@@ -33,17 +33,17 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await lovable.auth.signInWithOAuth("google", {
+    const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (error) toast.error("Google sign-in failed");
+    if (result?.error) toast.error("Google sign-in failed");
   };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center scanlines relative">
       <div className="w-full max-w-sm mx-auto p-6">
         <div className="text-center mb-8">
-          <div className="w-4 h-4 rounded-full bg-accent animate-pulse mx-auto mb-3" />
+          <img src={voidxLogo} alt="VOID-X" className="w-12 h-12 mx-auto mb-3" />
           <h1 className="text-xl font-bold text-foreground neon-text tracking-wider font-display">VOID-X</h1>
           <p className="text-xs text-muted-foreground mt-1">Enter the void. Get roasted.</p>
         </div>

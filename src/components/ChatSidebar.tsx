@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import SettingsPanel from "@/components/SettingsPanel";
 import PersonalizationPanel from "@/components/PersonalizationPanel";
 import ProfileMenu from "@/components/ProfileMenu";
+import voidxLogo from "@/assets/voidx-logo.png";
 
 type Memory = {
   id: string;
@@ -70,13 +71,17 @@ const ChatSidebar = ({
   if (collapsed) {
     return (
       <div className="flex flex-col items-center py-3 px-1 border-r border-border bg-card/50 w-12 shrink-0">
-        <button
-          onClick={onToggle}
-          className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          title="Expand sidebar"
-        >
-          <PanelLeft className="w-4 h-4" />
-        </button>
+        {/* Logo at top right area */}
+        <div className="flex flex-col items-center gap-2">
+          <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain" />
+          <button
+            onClick={onToggle}
+            className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title="Expand sidebar"
+          >
+            <PanelLeft className="w-4 h-4" />
+          </button>
+        </div>
         <button
           onClick={onNewChat}
           className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors mt-2"
@@ -109,7 +114,6 @@ const ChatSidebar = ({
 
   return (
     <div className="relative flex flex-col border-r border-border bg-card/50 w-64 shrink-0 transition-all">
-      {/* Settings overlay */}
       <SettingsPanel
         memories={memories}
         onClearMemories={onClearMemories}
@@ -120,7 +124,6 @@ const ChatSidebar = ({
         onDeleteAllData={onDeleteAllData}
       />
 
-      {/* Personalization overlay */}
       <PersonalizationPanel
         personalizationEnabled={personalizationEnabled}
         onTogglePersonalization={onTogglePersonalization}
@@ -131,7 +134,7 @@ const ChatSidebar = ({
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-accent animate-pulse" />
+          <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain" />
           <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
         </div>
         <button
@@ -181,9 +184,7 @@ const ChatSidebar = ({
             )}
           >
             <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate flex-1">
-              {session.title}
-            </span>
+            <span className="truncate flex-1">{session.title}</span>
             {hoveredId === session.id && (
               <button
                 onClick={(e) => {

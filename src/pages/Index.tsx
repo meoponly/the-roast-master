@@ -52,7 +52,6 @@ const Index = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [sessionMessages, setSessionMessages] = useState<Record<string, Message[]>>({});
   const [memories, setMemories] = useState<Memory[]>(() => {
     try { return JSON.parse(localStorage.getItem("voidx-memories") || "[]"); } catch { return []; }
   });
@@ -64,21 +63,33 @@ const Index = () => {
   });
   const [userProfile, setUserProfile] = useState({ displayName: "User", handle: "@user", avatarUrl: null as string | null });
   const [emptyChatPhrase] = useState(getEmptyChatPhrase());
+  const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
 
   const hasMessages = messages.length > 0;
 
+  // Load profile and sync avatar from Google metadata
   useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
+
+      // Sync Google avatar to profile if missing
+      const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
       if (profile) {
+        // Update avatar if profile has none but Google provides one
+        if (!profile.avatar_url && googleAvatar) {
+          await supabase.from("profiles").update({ avatar_url: googleAvatar }).eq("id", user.id);
+          profile.avatar_url = googleAvatar;
+        }
         setUserProfile({
           displayName: profile.display_name || user.email?.split("@")[0] || "User",
           handle: profile.handle || `@${user.email?.split("@")[0]}`,
-          avatarUrl: profile.avatar_url || null,
+          avatarUrl: profile.avatar_url || googleAvatar || null,
         });
       }
     };
@@ -95,6 +106,7 @@ const Index = () => {
     localStorage.setItem("voidx-memories", JSON.stringify(memories));
   }, [memories]);
 
+  // Load sessions
   useEffect(() => {
     const loadSessions = async () => {
       const { data } = await supabase
@@ -117,12 +129,42 @@ const Index = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // Save messages to DB
+  const saveMessageToDb = async (conversationId: string, msg: Message) => {
+    if (!userId) return;
+    await supabase.from("messages").insert({
+      user_id: userId,
+      conversation_id: conversationId,
+      role: msg.role,
+      content: msg.content,
+      image_url: msg.imageUrl || null,
+      edited_image_url: msg.editedImageUrl || null,
+    });
+  };
+
+  // Load messages for a session from DB
+  const loadSessionMessages = async (sessionId: string): Promise<Message[]> => {
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", sessionId)
+      .order("created_at", { ascending: true });
+
+    if (!data || data.length === 0) return [];
+    return data.map((m: any) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      imageUrl: m.image_url || undefined,
+      editedImageUrl: m.edited_image_url || undefined,
+    }));
+  };
+
   const saveSession = async (firstMsg: string) => {
     const title = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? "..." : "");
-    const { data: { user } } = await supabase.auth.getUser();
     const { data } = await supabase
       .from("chat_sessions")
-      .insert({ title, first_message: firstMsg, user_id: user?.id })
+      .insert({ title, first_message: firstMsg, user_id: userId })
       .select()
       .single();
     if (data) {
@@ -165,8 +207,14 @@ const Index = () => {
 
     if (!imageUrl) addMemory(text);
 
+    let currentSessionId = activeSessionId;
     if (chatHistoryEnabled && !activeSessionId && messages.length === 0) {
-      await saveSession(text || "Style Roast 🔥");
+      currentSessionId = await saveSession(text || "Style Roast 🔥");
+    }
+
+    // Save user message to DB
+    if (currentSessionId) {
+      await saveMessageToDb(currentSessionId, userMsg);
     }
 
     let assistantSoFar = "";
@@ -251,33 +299,39 @@ const Index = () => {
         }
       }
 
+      // Finalize streaming message and save to DB
+      const finalId = Date.now().toString();
       setMessages((prev) =>
-        prev.map((m) => m.id === "streaming" ? { ...m, id: Date.now().toString() } : m)
+        prev.map((m) => m.id === "streaming" ? { ...m, id: finalId } : m)
       );
+
+      if (currentSessionId) {
+        await saveMessageToDb(currentSessionId, {
+          id: finalId,
+          role: "assistant",
+          content: assistantSoFar,
+          editedImageUrl: editedImg || undefined,
+        });
+      }
     } catch (err) {
       console.error("Stream error:", err);
       toast.error("Connection lost. Even the void rejects you. 💀");
     } finally {
       setIsTyping(false);
     }
-  }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled]);
+  }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled, userId]);
 
   const handleNewChat = () => {
-    if (activeSessionId) {
-      setSessionMessages((prev) => ({ ...prev, [activeSessionId]: messages }));
-    }
     setActiveSessionId(null);
     setMessages([]);
   };
 
-  const handleSelectSession = (id: string) => {
-    if (activeSessionId) {
-      setSessionMessages((prev) => ({ ...prev, [activeSessionId]: messages }));
-    }
+  const handleSelectSession = async (id: string) => {
     setActiveSessionId(id);
-    const cached = sessionMessages[id];
-    if (cached) {
-      setMessages(cached);
+    // Load from DB
+    const loaded = await loadSessionMessages(id);
+    if (loaded.length > 0) {
+      setMessages(loaded);
     } else {
       const session = sessions.find((s) => s.id === id);
       setMessages(
@@ -289,11 +343,6 @@ const Index = () => {
   const handleDeleteSession = async (id: string) => {
     await supabase.from("chat_sessions").delete().eq("id", id);
     setSessions((prev) => prev.filter((s) => s.id !== id));
-    setSessionMessages((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
     if (activeSessionId === id) {
       handleNewChat();
     }
@@ -327,12 +376,10 @@ const Index = () => {
   };
 
   const handleDeleteAllData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("chat_sessions").delete().eq("user_id", user.id);
+    if (userId) {
+      await supabase.from("chat_sessions").delete().eq("user_id", userId);
     }
     setSessions([]);
-    setSessionMessages({});
     setMemories([]);
     localStorage.removeItem("voidx-memories");
     handleNewChat();
@@ -361,10 +408,9 @@ const Index = () => {
       />
       <div className="flex flex-col flex-1 min-w-0">
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
-          {/* Empty chat greeting */}
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in">
-              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60" />
+              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" />
               <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
                 VOID-X
               </h1>
@@ -379,8 +425,8 @@ const Index = () => {
           ))}
           {isTyping && !messages.some(m => m.id === "streaming") && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded bg-accent/20 border border-accent/40 flex items-center justify-center">
-                <img src={voidxLogo} alt="VX" className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/40 flex items-center justify-center">
+                <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" />
               </div>
               <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
                 <span className="blink-cursor">{typingPhrase}</span>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -10,7 +10,25 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
+
+  // Check if already authenticated
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigate("/", { replace: true });
+      }
+      setChecking(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        navigate("/", { replace: true });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +37,6 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -33,17 +50,34 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result?.error) toast.error("Google sign-in failed");
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result?.error) {
+        toast.error("Google sign-in failed. Try again.");
+        setLoading(false);
+      }
+    } catch {
+      toast.error("Google sign-in failed");
+      setLoading(false);
+    }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-4 h-4 rounded-full bg-accent animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center scanlines relative">
       <div className="w-full max-w-sm mx-auto p-6">
         <div className="text-center mb-8">
-          <img src={voidxLogo} alt="VOID-X" className="w-12 h-12 mx-auto mb-3" />
+          <img src={voidxLogo} alt="VOID-X" className="w-12 h-12 mx-auto mb-3 rounded-2xl shadow-lg" />
           <h1 className="text-xl font-bold text-foreground neon-text tracking-wider font-display">VOID-X</h1>
           <p className="text-xs text-muted-foreground mt-1">Enter the void. Get roasted.</p>
         </div>
@@ -51,7 +85,8 @@ const Auth = () => {
         <div className="bg-card border border-border rounded-lg p-5 space-y-4">
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-mono transition-colors"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-mono transition-colors disabled:opacity-50"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -59,7 +94,7 @@ const Auth = () => {
               <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Continue with Google
+            {loading ? "Connecting..." : "Continue with Google"}
           </button>
 
           <div className="flex items-center gap-3">

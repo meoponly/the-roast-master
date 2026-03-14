@@ -134,7 +134,7 @@ const ChatSidebar = ({
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain" />
+          <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain rounded-xl shadow-md" />
           <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
         </div>
         <button

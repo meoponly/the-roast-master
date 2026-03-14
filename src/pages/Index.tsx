@@ -8,7 +8,9 @@ import { getGreeting, getTypingPhrase, getEmptyChatPhrase } from "@/lib/voidx";
 import { toast } from "sonner";
 import { useAmbientSound } from "@/hooks/useAmbientSound";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import voidxLogo from "@/assets/voidx-logo.png";
+import { Menu } from "lucide-react";
 
 type Message = {
   id: string;
@@ -34,6 +36,12 @@ type Memory = {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voidx-chat`;
 
+const SUGGESTION_CARDS = [
+  { title: "Roast My Style 🔥", prompt: "__ROAST_PHOTO__", description: "Upload a photo and get brutally roasted" },
+  { title: "Rate My Existence 💀", prompt: "Rate my existence based on the fact that I'm talking to an AI at this hour. Be savage.", description: "Get a savage reality check" },
+  { title: "Expose My Ego 🪦", prompt: "I think I'm the main character. Humble me with the darkest roast you got.", description: "Time for a brutal ego check" },
+];
+
 const extractMemory = (text: string): string | null => {
   const patterns = [
     /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,
@@ -48,7 +56,7 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [typingPhrase, setTypingPhrase] = useState(getTypingPhrase());
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -66,22 +74,30 @@ const Index = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playGlitchSound } = useAmbientSound();
+  const isMobile = useIsMobile();
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const hasMessages = messages.length > 0;
 
-  // Load profile and sync avatar from Google metadata
+  // On mobile, sidebar is always a drawer
+  const effectiveCollapsed = isMobile ? !mobileDrawerOpen : sidebarCollapsed;
+  const handleToggleSidebar = () => {
+    if (isMobile) {
+      setMobileDrawerOpen(!mobileDrawerOpen);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
+  };
+
+  // Load profile
   useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
-
-      // Sync Google avatar to profile if missing
       const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
       if (profile) {
-        // Update avatar if profile has none but Google provides one
         if (!profile.avatar_url && googleAvatar) {
           await supabase.from("profiles").update({ avatar_url: googleAvatar }).eq("id", user.id);
           profile.avatar_url = googleAvatar;
@@ -106,7 +122,6 @@ const Index = () => {
     localStorage.setItem("voidx-memories", JSON.stringify(memories));
   }, [memories]);
 
-  // Load sessions
   useEffect(() => {
     const loadSessions = async () => {
       const { data } = await supabase
@@ -115,10 +130,7 @@ const Index = () => {
         .order("updated_at", { ascending: false });
       if (data) {
         setSessions(data.map((s: any) => ({
-          id: s.id,
-          title: s.title,
-          firstMessage: s.first_message,
-          createdAt: s.created_at,
+          id: s.id, title: s.title, firstMessage: s.first_message, createdAt: s.created_at,
         })));
       }
     };
@@ -129,51 +141,30 @@ const Index = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Save messages to DB
   const saveMessageToDb = async (conversationId: string, msg: Message) => {
     if (!userId) return;
     await supabase.from("messages").insert({
-      user_id: userId,
-      conversation_id: conversationId,
-      role: msg.role,
-      content: msg.content,
-      image_url: msg.imageUrl || null,
-      edited_image_url: msg.editedImageUrl || null,
+      user_id: userId, conversation_id: conversationId, role: msg.role, content: msg.content,
+      image_url: msg.imageUrl || null, edited_image_url: msg.editedImageUrl || null,
     });
   };
 
-  // Load messages for a session from DB
   const loadSessionMessages = async (sessionId: string): Promise<Message[]> => {
     const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", sessionId)
-      .order("created_at", { ascending: true });
-
+      .from("messages").select("*").eq("conversation_id", sessionId).order("created_at", { ascending: true });
     if (!data || data.length === 0) return [];
     return data.map((m: any) => ({
-      id: m.id,
-      role: m.role as "user" | "assistant",
-      content: m.content,
-      imageUrl: m.image_url || undefined,
-      editedImageUrl: m.edited_image_url || undefined,
+      id: m.id, role: m.role as "user" | "assistant", content: m.content,
+      imageUrl: m.image_url || undefined, editedImageUrl: m.edited_image_url || undefined,
     }));
   };
 
   const saveSession = async (firstMsg: string) => {
     const title = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? "..." : "");
     const { data } = await supabase
-      .from("chat_sessions")
-      .insert({ title, first_message: firstMsg, user_id: userId })
-      .select()
-      .single();
+      .from("chat_sessions").insert({ title, first_message: firstMsg, user_id: userId }).select().single();
     if (data) {
-      const session: ChatSession = {
-        id: data.id,
-        title: data.title,
-        firstMessage: data.first_message,
-        createdAt: data.created_at,
-      };
+      const session: ChatSession = { id: data.id, title: data.title, firstMessage: data.first_message, createdAt: data.created_at };
       setSessions((prev) => [session, ...prev]);
       setActiveSessionId(data.id);
       return data.id;
@@ -194,28 +185,20 @@ const Index = () => {
 
   const handleSend = useCallback(async (text: string, imageUrl?: string) => {
     setTypingPhrase(getTypingPhrase());
-
     const userMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: imageUrl ? `[ROAST MY STYLE] ${text || "Roast my style!"}` : text,
-      imageUrl,
+      id: Date.now().toString(), role: "user",
+      content: imageUrl ? `[ROAST MY STYLE] ${text || "Roast my style!"}` : text, imageUrl,
     };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setIsTyping(true);
-
     if (!imageUrl) addMemory(text);
 
     let currentSessionId = activeSessionId;
     if (chatHistoryEnabled && !activeSessionId && messages.length === 0) {
       currentSessionId = await saveSession(text || "Style Roast 🔥");
     }
-
-    // Save user message to DB
-    if (currentSessionId) {
-      await saveMessageToDb(currentSessionId, userMsg);
-    }
+    if (currentSessionId) await saveMessageToDb(currentSessionId, userMsg);
 
     let assistantSoFar = "";
     let soundPlayed = false;
@@ -223,10 +206,7 @@ const Index = () => {
 
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
-      if (!soundPlayed) {
-        soundPlayed = true;
-        playGlitchSound();
-      }
+      if (!soundPlayed) { soundPlayed = true; playGlitchSound(); }
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.id === "streaming") {
@@ -238,28 +218,19 @@ const Index = () => {
 
     try {
       const apiMessages = newMessages.map(({ role, content, imageUrl }) => ({
-        role,
-        content,
-        ...(imageUrl ? { imageUrl } : {}),
+        role, content, ...(imageUrl ? { imageUrl } : {}),
       }));
-
       const resp = await fetch(CHAT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
         body: JSON.stringify({ messages: apiMessages }),
       });
-
       if (!resp.ok) {
         const errData = await resp.json().catch(() => null);
-        const errMsg = errData?.error || "My circuits exploded. Try again. 💀";
-        toast.error(errMsg);
+        toast.error(errData?.error || "My circuits exploded. Try again. 💀");
         setIsTyping(false);
         return;
       }
-
       if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
@@ -271,47 +242,28 @@ const Index = () => {
         const { done, value } = await reader.read();
         if (done) break;
         textBuffer += decoder.decode(value, { stream: true });
-
         let newlineIndex: number;
         while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
           let line = textBuffer.slice(0, newlineIndex);
           textBuffer = textBuffer.slice(newlineIndex + 1);
-
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (line.startsWith(":") || line.trim() === "") continue;
           if (!line.startsWith("data: ")) continue;
-
           const jsonStr = line.slice(6).trim();
           if (jsonStr === "[DONE]") { streamDone = true; break; }
-
           try {
             const parsed = JSON.parse(jsonStr);
-            if (parsed.editedImage) {
-              editedImg = parsed.editedImage;
-              continue;
-            }
+            if (parsed.editedImage) { editedImg = parsed.editedImage; continue; }
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) upsertAssistant(content);
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
+          } catch { textBuffer = line + "\n" + textBuffer; break; }
         }
       }
 
-      // Finalize streaming message and save to DB
       const finalId = Date.now().toString();
-      setMessages((prev) =>
-        prev.map((m) => m.id === "streaming" ? { ...m, id: finalId } : m)
-      );
-
+      setMessages((prev) => prev.map((m) => m.id === "streaming" ? { ...m, id: finalId } : m));
       if (currentSessionId) {
-        await saveMessageToDb(currentSessionId, {
-          id: finalId,
-          role: "assistant",
-          content: assistantSoFar,
-          editedImageUrl: editedImg || undefined,
-        });
+        await saveMessageToDb(currentSessionId, { id: finalId, role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
       }
     } catch (err) {
       console.error("Stream error:", err);
@@ -321,31 +273,23 @@ const Index = () => {
     }
   }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled, userId]);
 
-  const handleNewChat = () => {
-    setActiveSessionId(null);
-    setMessages([]);
-  };
+  const handleNewChat = () => { setActiveSessionId(null); setMessages([]); };
 
   const handleSelectSession = async (id: string) => {
     setActiveSessionId(id);
-    // Load from DB
+    if (isMobile) setMobileDrawerOpen(false);
     const loaded = await loadSessionMessages(id);
-    if (loaded.length > 0) {
-      setMessages(loaded);
-    } else {
+    if (loaded.length > 0) { setMessages(loaded); }
+    else {
       const session = sessions.find((s) => s.id === id);
-      setMessages(
-        session?.firstMessage ? [{ id: "restored", role: "user" as const, content: session.firstMessage }] : []
-      );
+      setMessages(session?.firstMessage ? [{ id: "restored", role: "user" as const, content: session.firstMessage }] : []);
     }
   };
 
   const handleDeleteSession = async (id: string) => {
     await supabase.from("chat_sessions").delete().eq("id", id);
     setSessions((prev) => prev.filter((s) => s.id !== id));
-    if (activeSessionId === id) {
-      handleNewChat();
-    }
+    if (activeSessionId === id) handleNewChat();
   };
 
   const handlePhotoRoast = (imageUrl: string) => {
@@ -353,40 +297,27 @@ const Index = () => {
     handleSend("Roast my style based on this photo!", imageUrl);
   };
 
-  const handleClearMemories = () => {
-    setMemories([]);
-    toast.success("Memories cleared. But VOID-X never truly forgets. 💀");
-  };
-
-  const handleToggleChatHistory = (val: boolean) => {
-    setChatHistoryEnabled(val);
-    localStorage.setItem("voidx-chat-history", String(val));
-  };
-
-  const handleTogglePersonalization = (val: boolean) => {
-    setPersonalizationEnabled(val);
-    localStorage.setItem("voidx-personalization", String(val));
-  };
+  const handleClearMemories = () => { setMemories([]); toast.success("Memories cleared. But VOID-X never truly forgets. 💀"); };
+  const handleToggleChatHistory = (val: boolean) => { setChatHistoryEnabled(val); localStorage.setItem("voidx-chat-history", String(val)); };
+  const handleTogglePersonalization = (val: boolean) => { setPersonalizationEnabled(val); localStorage.setItem("voidx-personalization", String(val)); };
 
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+  const handleLogout = async () => { await supabase.auth.signOut(); navigate("/auth"); };
+  const handleDeleteAllData = async () => {
+    if (userId) await supabase.from("chat_sessions").delete().eq("user_id", userId);
+    setSessions([]); setMemories([]); localStorage.removeItem("voidx-memories"); handleNewChat();
   };
 
-  const handleDeleteAllData = async () => {
-    if (userId) {
-      await supabase.from("chat_sessions").delete().eq("user_id", userId);
+  const handleSuggestionClick = (prompt: string) => {
+    if (prompt === "__ROAST_PHOTO__") {
+      setShowPhotoModal(true);
+    } else {
+      handleSend(prompt);
     }
-    setSessions([]);
-    setMemories([]);
-    localStorage.removeItem("voidx-memories");
-    handleNewChat();
   };
 
   return (
-    <div className="flex h-screen bg-background relative scanlines overflow-hidden">
+    <div className="flex h-[100dvh] bg-background relative scanlines overflow-hidden">
       <ChatSidebar
         sessions={sessions}
         activeSessionId={activeSessionId}
@@ -394,8 +325,8 @@ const Index = () => {
         onNewChat={handleNewChat}
         onDeleteSession={handleDeleteSession}
         onRoastMyStyle={() => setShowPhotoModal(true)}
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        collapsed={effectiveCollapsed}
+        onToggle={handleToggleSidebar}
         memories={memories}
         onClearMemories={handleClearMemories}
         chatHistoryEnabled={chatHistoryEnabled}
@@ -407,16 +338,40 @@ const Index = () => {
         onDeleteAllData={handleDeleteAllData}
       />
       <div className="flex flex-col flex-1 min-w-0">
+        {/* Mobile header */}
+        {isMobile && (
+          <div className="flex items-center gap-2 p-2 border-b border-border">
+            <button onClick={handleToggleSidebar} className="p-2 rounded hover:bg-secondary text-muted-foreground">
+              <Menu className="w-5 h-5" />
+            </button>
+            <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 rounded-xl" loading="eager" />
+            <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
+          </div>
+        )}
+
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
           {!hasMessages && !isTyping && (
-            <div className="flex flex-col items-center justify-center h-full animate-fade-in">
-              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" />
+            <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
+              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" loading="eager" />
               <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
                 VOID-X
               </h1>
-              <p className="text-xs text-muted-foreground font-mono max-w-xs text-center">
+              <p className="text-xs text-muted-foreground font-mono max-w-xs text-center mb-8">
                 {emptyChatPhrase}
               </p>
+              {/* Suggestion Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg w-full">
+                {SUGGESTION_CARDS.map((card) => (
+                  <button
+                    key={card.title}
+                    onClick={() => handleSuggestionClick(card.prompt)}
+                    className="flex flex-col gap-1 p-3 rounded-lg border border-border bg-card hover:bg-secondary/80 transition-colors text-left group"
+                  >
+                    <span className="text-xs font-bold text-foreground group-hover:neon-text">{card.title}</span>
+                    <span className="text-[10px] text-muted-foreground leading-tight">{card.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -425,8 +380,8 @@ const Index = () => {
           ))}
           {isTyping && !messages.some(m => m.id === "streaming") && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/40 flex items-center justify-center">
-                <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" />
+              <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">
+                <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />
               </div>
               <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
                 <span className="blink-cursor">{typingPhrase}</span>
@@ -436,11 +391,7 @@ const Index = () => {
         </div>
         <ChatInput onSend={handleSend} disabled={isTyping} />
       </div>
-      <PhotoUploadModal
-        open={showPhotoModal}
-        onClose={() => setShowPhotoModal(false)}
-        onSubmit={handlePhotoRoast}
-      />
+      <PhotoUploadModal open={showPhotoModal} onClose={() => setShowPhotoModal(false)} onSubmit={handlePhotoRoast} />
     </div>
   );
 };

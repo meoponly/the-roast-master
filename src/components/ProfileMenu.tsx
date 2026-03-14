@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { LogOut, Settings, Sparkles, User } from "lucide-react";
+import { LogOut, Settings, Sparkles } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type ProfileMenuProps = {
@@ -48,7 +48,7 @@ const ProfileMenu = ({
         >
           <Avatar className="w-7 h-7">
             {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-            <AvatarFallback className="bg-accent/20 text-accent text-[10px] font-bold">
+            <AvatarFallback className="bg-secondary text-foreground text-[10px] font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -76,7 +76,7 @@ const ProfileMenu = ({
       >
         <Avatar className="w-7 h-7">
           {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-          <AvatarFallback className="bg-accent/20 text-accent text-[10px] font-bold">
+          <AvatarFallback className="bg-secondary text-foreground text-[10px] font-bold">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -121,14 +121,14 @@ const MenuContent = ({
       onClick={onOpenPersonalization}
       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors"
     >
-      <Sparkles className="w-3.5 h-3.5 text-accent" />
+      <Sparkles className="w-3.5 h-3.5 text-foreground" />
       Personalization
     </button>
     <button
       onClick={onOpenSettings}
       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-secondary transition-colors"
     >
-      <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+      <Settings className="w-3.5 h-3.5 text-foreground" />
       Settings
     </button>
     <div className="border-t border-border mt-1" />

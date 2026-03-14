@@ -73,7 +73,7 @@ const ChatSidebar = ({
       <div className="flex flex-col items-center py-3 px-1 border-r border-border bg-card/50 w-12 shrink-0">
         {/* Logo at top right area */}
         <div className="flex flex-col items-center gap-2">
-          <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain" />
+          <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain rounded-xl shadow-md" />
           <button
             onClick={onToggle}
             className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"

@@ -73,7 +73,7 @@ const ChatSidebar = ({
       <div className="flex flex-col items-center py-3 px-1 border-r border-border bg-card/50 w-12 shrink-0">
         {/* Logo at top right area */}
         <div className="flex flex-col items-center gap-2">
-          <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain" />
+          <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain rounded-xl shadow-md" />
           <button
             onClick={onToggle}
             className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -134,7 +134,7 @@ const ChatSidebar = ({
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain" />
+          <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain rounded-xl shadow-md" />
           <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
         </div>
         <button

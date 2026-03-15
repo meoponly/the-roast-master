@@ -256,6 +256,7 @@ const Index = () => {
           content: text.trim(),
           isNew: i === sentenceBuffer.length - 1,
           editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+          sequenceIndex: i,
         }));
         return [...base, ...newBubbles];
       });

@@ -60,9 +60,15 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl }: ChatMes
           </div>
         )}
         <p className="whitespace-pre-wrap">{content}</p>
+        </div>
+        {isUser && (
+          <span className="text-[9px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
+            {timestamp}
+          </span>
+        )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded bg-secondary border border-border flex items-center justify-center text-muted-foreground text-xs">
+        <div className="flex-shrink-0 w-8 h-8 rounded bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono">
           {">"}_
         </div>
       )}

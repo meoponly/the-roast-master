@@ -442,7 +442,7 @@ const Index = () => {
           {messages.map((msg) => (
             <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
           ))}
-          {isTyping && !messages.some(m => m.id === "streaming") && (
+          {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
               <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">
                 <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />

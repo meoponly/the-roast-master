@@ -303,10 +303,22 @@ const Index = () => {
         }
       }
 
-      const finalId = Date.now().toString();
-      setMessages((prev) => prev.map((m) => m.id === "streaming" ? { ...m, id: finalId } : m));
+      // Finalize all streaming bubbles with real IDs
+      const finalMessages = splitIntoMessages(assistantSoFar);
+      const ts = Date.now();
+      setMessages((prev) => {
+        const base = prev.filter(m => !m.id.startsWith("streaming-"));
+        const finalized: Message[] = finalMessages.map((text, i) => ({
+          id: `${ts}-${i}`,
+          role: "assistant" as const,
+          content: text.trim(),
+          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+        }));
+        return [...base, ...finalized];
+      });
+      // Save full response as single DB record
       if (currentSessionId) {
-        await saveMessageToDb(currentSessionId, { id: finalId, role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
+        await saveMessageToDb(currentSessionId, { id: ts.toString(), role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
       }
     } catch (err) {
       console.error("Stream error:", err);

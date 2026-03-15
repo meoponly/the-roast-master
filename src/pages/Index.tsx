@@ -42,6 +42,20 @@ const SUGGESTION_CARDS = [
   { title: "Expose My Ego 🪦", prompt: "I think I'm the main character. Humble me with the darkest roast you got.", description: "Time for a brutal ego check" },
 ];
 
+const generateRoastTitle = (text: string): string => {
+  const lower = text.toLowerCase();
+  if (lower.includes("style") || lower.includes("outfit") || lower.includes("fashion") || lower.includes("[roast my style]")) return "Style Roast 🔥";
+  if (lower.includes("resume") || lower.includes("cv") || lower.includes("job")) return "Resume Roast 📄";
+  if (lower.includes("photo") || lower.includes("pic") || lower.includes("selfie")) return "Photo Roast 📸";
+  if (lower.includes("profile") || lower.includes("bio") || lower.includes("linkedin")) return "Profile Roast 💼";
+  if (lower.includes("ego") || lower.includes("main character") || lower.includes("humble")) return "Ego Roast 🪦";
+  if (lower.includes("existence") || lower.includes("life") || lower.includes("alive")) return "Existence Roast 💀";
+  if (lower.includes("relationship") || lower.includes("love") || lower.includes("crush")) return "Love Life Roast 💔";
+  if (lower.includes("code") || lower.includes("developer") || lower.includes("programming")) return "Dev Roast 💻";
+  if (lower.includes("food") || lower.includes("cooking") || lower.includes("eat")) return "Food Roast 🍕";
+  return "Savage Roast 💀";
+};
+
 const extractMemory = (text: string): string | null => {
   const patterns = [
     /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,
@@ -168,7 +182,7 @@ const Index = () => {
   };
 
   const saveSession = async (firstMsg: string) => {
-    const title = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? "..." : "");
+    const title = generateRoastTitle(firstMsg);
     const { data } = await supabase
       .from("chat_sessions").insert({ title, first_message: firstMsg, user_id: userId }).select().single();
     if (data) {
@@ -211,16 +225,37 @@ const Index = () => {
     let assistantSoFar = "";
     let soundPlayed = false;
     let editedImg: string | null = null;
+    let currentBubbleIndex = 0;
+    let sentenceBuffer: string[] = [];
+
+    const splitIntoMessages = (fullText: string): string[] => {
+      // Split on double newlines or sentence boundaries that form logical groups
+      const parts = fullText.split(/\n{2,}/).filter(p => p.trim());
+      if (parts.length > 1) return parts;
+      // Fallback: split on single newlines if they form separate thoughts
+      const lines = fullText.split(/\n/).filter(p => p.trim());
+      if (lines.length > 1) return lines;
+      return [fullText];
+    };
 
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
       if (!soundPlayed) { soundPlayed = true; playGlitchSound(); }
+      
+      // Split accumulated text into message bubbles
+      sentenceBuffer = splitIntoMessages(assistantSoFar);
+      
       setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.id === "streaming") {
-          return prev.map((m) => m.id === "streaming" ? { ...m, content: assistantSoFar, editedImageUrl: editedImg || undefined } : m);
-        }
-        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar, isNew: true, editedImageUrl: editedImg || undefined }];
+        // Remove all streaming messages first
+        const base = prev.filter(m => !m.id.startsWith("streaming-"));
+        const newBubbles: Message[] = sentenceBuffer.map((text, i) => ({
+          id: `streaming-${i}`,
+          role: "assistant" as const,
+          content: text.trim(),
+          isNew: i === sentenceBuffer.length - 1,
+          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+        }));
+        return [...base, ...newBubbles];
       });
     };
 
@@ -268,10 +303,22 @@ const Index = () => {
         }
       }
 
-      const finalId = Date.now().toString();
-      setMessages((prev) => prev.map((m) => m.id === "streaming" ? { ...m, id: finalId } : m));
+      // Finalize all streaming bubbles with real IDs
+      const finalMessages = splitIntoMessages(assistantSoFar);
+      const ts = Date.now();
+      setMessages((prev) => {
+        const base = prev.filter(m => !m.id.startsWith("streaming-"));
+        const finalized: Message[] = finalMessages.map((text, i) => ({
+          id: `${ts}-${i}`,
+          role: "assistant" as const,
+          content: text.trim(),
+          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+        }));
+        return [...base, ...finalized];
+      });
+      // Save full response as single DB record
       if (currentSessionId) {
-        await saveMessageToDb(currentSessionId, { id: finalId, role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
+        await saveMessageToDb(currentSessionId, { id: ts.toString(), role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
       }
     } catch (err) {
       console.error("Stream error:", err);
@@ -357,6 +404,15 @@ const Index = () => {
           </div>
         )}
 
+        {/* System status bar */}
+        <div className="flex justify-between items-center px-4 py-1.5 border-b border-border text-[10px] font-mono tracking-widest z-20 relative">
+          <span className="text-primary/70 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-primary/70 neon-text flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            SYSTEM ONLINE
+          </span>
+        </div>
+
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
@@ -386,7 +442,7 @@ const Index = () => {
           {messages.map((msg) => (
             <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
           ))}
-          {isTyping && !messages.some(m => m.id === "streaming") && (
+          {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
               <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">
                 <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />

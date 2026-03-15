@@ -12,6 +12,8 @@ type ChatMessageProps = {
 const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl }: ChatMessageProps) => {
   const isUser = role === "user";
 
+  const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+
   return (
     <div
       className={cn(
@@ -21,18 +23,24 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl }: ChatMes
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded bg-accent/20 border border-accent/40 flex items-center justify-center text-accent text-xs font-bold">
+        <div className="flex-shrink-0 w-8 h-8 rounded bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text">
           VX
         </div>
       )}
-      <div
-        className={cn(
-          "max-w-[80%] rounded px-4 py-3 text-sm leading-relaxed",
-          isUser
-            ? "bg-secondary text-secondary-foreground border border-border"
-            : "bg-card text-foreground border border-border"
+      <div className="flex flex-col gap-1 max-w-[80%]">
+        {!isUser && (
+          <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1">
+            VOID-X • {timestamp}
+          </span>
         )}
-      >
+        <div
+          className={cn(
+            "rounded px-4 py-3 text-sm leading-relaxed",
+            isUser
+              ? "bg-secondary text-secondary-foreground border border-border"
+              : "bg-card text-foreground border border-primary/20"
+          )}
+        >
         {imageUrl && (
           <div className="mb-2 relative">
             <img src={imageUrl} alt="Uploaded style" className="rounded max-h-48 object-cover border border-border" />

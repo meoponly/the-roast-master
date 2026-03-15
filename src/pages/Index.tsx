@@ -225,16 +225,37 @@ const Index = () => {
     let assistantSoFar = "";
     let soundPlayed = false;
     let editedImg: string | null = null;
+    let currentBubbleIndex = 0;
+    let sentenceBuffer: string[] = [];
+
+    const splitIntoMessages = (fullText: string): string[] => {
+      // Split on double newlines or sentence boundaries that form logical groups
+      const parts = fullText.split(/\n{2,}/).filter(p => p.trim());
+      if (parts.length > 1) return parts;
+      // Fallback: split on single newlines if they form separate thoughts
+      const lines = fullText.split(/\n/).filter(p => p.trim());
+      if (lines.length > 1) return lines;
+      return [fullText];
+    };
 
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
       if (!soundPlayed) { soundPlayed = true; playGlitchSound(); }
+      
+      // Split accumulated text into message bubbles
+      sentenceBuffer = splitIntoMessages(assistantSoFar);
+      
       setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.id === "streaming") {
-          return prev.map((m) => m.id === "streaming" ? { ...m, content: assistantSoFar, editedImageUrl: editedImg || undefined } : m);
-        }
-        return [...prev, { id: "streaming", role: "assistant", content: assistantSoFar, isNew: true, editedImageUrl: editedImg || undefined }];
+        // Remove all streaming messages first
+        const base = prev.filter(m => !m.id.startsWith("streaming-"));
+        const newBubbles: Message[] = sentenceBuffer.map((text, i) => ({
+          id: `streaming-${i}`,
+          role: "assistant" as const,
+          content: text.trim(),
+          isNew: i === sentenceBuffer.length - 1,
+          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+        }));
+        return [...base, ...newBubbles];
       });
     };
 

@@ -371,6 +371,15 @@ const Index = () => {
           </div>
         )}
 
+        {/* System status bar */}
+        <div className="flex justify-between items-center px-4 py-1.5 border-b border-border text-[10px] font-mono tracking-widest z-20 relative">
+          <span className="text-primary/70 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-primary/70 neon-text flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            SYSTEM ONLINE
+          </span>
+        </div>
+
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">

@@ -42,6 +42,20 @@ const SUGGESTION_CARDS = [
   { title: "Expose My Ego 🪦", prompt: "I think I'm the main character. Humble me with the darkest roast you got.", description: "Time for a brutal ego check" },
 ];
 
+const generateRoastTitle = (text: string): string => {
+  const lower = text.toLowerCase();
+  if (lower.includes("style") || lower.includes("outfit") || lower.includes("fashion") || lower.includes("[roast my style]")) return "Style Roast 🔥";
+  if (lower.includes("resume") || lower.includes("cv") || lower.includes("job")) return "Resume Roast 📄";
+  if (lower.includes("photo") || lower.includes("pic") || lower.includes("selfie")) return "Photo Roast 📸";
+  if (lower.includes("profile") || lower.includes("bio") || lower.includes("linkedin")) return "Profile Roast 💼";
+  if (lower.includes("ego") || lower.includes("main character") || lower.includes("humble")) return "Ego Roast 🪦";
+  if (lower.includes("existence") || lower.includes("life") || lower.includes("alive")) return "Existence Roast 💀";
+  if (lower.includes("relationship") || lower.includes("love") || lower.includes("crush")) return "Love Life Roast 💔";
+  if (lower.includes("code") || lower.includes("developer") || lower.includes("programming")) return "Dev Roast 💻";
+  if (lower.includes("food") || lower.includes("cooking") || lower.includes("eat")) return "Food Roast 🍕";
+  return "Savage Roast 💀";
+};
+
 const extractMemory = (text: string): string | null => {
   const patterns = [
     /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,

@@ -7,6 +7,8 @@ type ChatMessageProps = {
   isNew?: boolean;
   imageUrl?: string;
   editedImageUrl?: string;
+  showTimestamp?: boolean;
+  hidden?: boolean;
 };
 
 const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl }: ChatMessageProps) => {

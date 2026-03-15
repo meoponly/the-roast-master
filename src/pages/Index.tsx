@@ -19,6 +19,8 @@ type Message = {
   isNew?: boolean;
   imageUrl?: string;
   editedImageUrl?: string;
+  sequenceIndex?: number;
+  hidden?: boolean;
 };
 
 type ChatSession = {

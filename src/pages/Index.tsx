@@ -456,7 +456,16 @@ const Index = () => {
           )}
 
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
+            <ChatMessage
+              key={msg.id}
+              role={msg.role}
+              content={msg.content}
+              isNew={msg.isNew}
+              imageUrl={msg.imageUrl}
+              editedImageUrl={msg.editedImageUrl}
+              showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
+              hidden={msg.hidden}
+            />
           ))}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">

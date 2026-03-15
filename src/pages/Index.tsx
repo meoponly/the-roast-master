@@ -123,6 +123,7 @@ const Index = () => {
   }, [memories]);
 
   useEffect(() => {
+    if (!userId) return;
     const loadSessions = async () => {
       const { data } = await supabase
         .from("chat_sessions")
@@ -132,10 +133,17 @@ const Index = () => {
         setSessions(data.map((s: any) => ({
           id: s.id, title: s.title, firstMessage: s.first_message, createdAt: s.created_at,
         })));
+        // Auto-load most recent session
+        if (data.length > 0 && !activeSessionId) {
+          const mostRecent = data[0];
+          setActiveSessionId(mostRecent.id);
+          const msgs = await loadSessionMessages(mostRecent.id);
+          if (msgs.length > 0) setMessages(msgs);
+        }
       }
     };
     loadSessions();
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });

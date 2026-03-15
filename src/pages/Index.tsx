@@ -182,7 +182,7 @@ const Index = () => {
   };
 
   const saveSession = async (firstMsg: string) => {
-    const title = firstMsg.slice(0, 40) + (firstMsg.length > 40 ? "..." : "");
+    const title = generateRoastTitle(firstMsg);
     const { data } = await supabase
       .from("chat_sessions").insert({ title, first_message: firstMsg, user_id: userId }).select().single();
     if (data) {

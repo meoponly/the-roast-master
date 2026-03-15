@@ -7,28 +7,32 @@ type ChatMessageProps = {
   isNew?: boolean;
   imageUrl?: string;
   editedImageUrl?: string;
+  showTimestamp?: boolean;
+  hidden?: boolean;
 };
 
-const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimestamp = true, hidden }: ChatMessageProps) => {
   const isUser = role === "user";
 
   const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
+  if (hidden) return null;
+
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-3",
+        "flex gap-3 px-4 py-1.5",
         isUser ? "justify-end animate-fade-in" : "justify-start",
         !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text">
+        <div className={cn("flex-shrink-0 w-8 h-8 rounded bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text", !showTimestamp && "invisible")}>
           VX
         </div>
       )}
       <div className="flex flex-col gap-1 max-w-[80%]">
-        {!isUser && (
+        {!isUser && showTimestamp && (
           <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1">
             VOID-X • {timestamp}
           </span>

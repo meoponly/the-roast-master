@@ -19,6 +19,8 @@ type Message = {
   isNew?: boolean;
   imageUrl?: string;
   editedImageUrl?: string;
+  sequenceIndex?: number;
+  hidden?: boolean;
 };
 
 type ChatSession = {
@@ -254,6 +256,7 @@ const Index = () => {
           content: text.trim(),
           isNew: i === sentenceBuffer.length - 1,
           editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+          sequenceIndex: i,
         }));
         return [...base, ...newBubbles];
       });
@@ -303,9 +306,11 @@ const Index = () => {
         }
       }
 
-      // Finalize all streaming bubbles with real IDs
+      // Finalize: stagger reveal each bubble with delay + sound
       const finalMessages = splitIntoMessages(assistantSoFar);
       const ts = Date.now();
+      
+      // First, replace streaming with hidden finalized bubbles
       setMessages((prev) => {
         const base = prev.filter(m => !m.id.startsWith("streaming-"));
         const finalized: Message[] = finalMessages.map((text, i) => ({
@@ -313,9 +318,20 @@ const Index = () => {
           role: "assistant" as const,
           content: text.trim(),
           editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+          sequenceIndex: i,
+          hidden: i > 0,
         }));
         return [...base, ...finalized];
       });
+
+      // Stagger reveal each bubble with delay + sound
+      for (let i = 1; i < finalMessages.length; i++) {
+        await new Promise(r => setTimeout(r, 400));
+        playGlitchSound();
+        setMessages((prev) =>
+          prev.map(m => m.id === `${ts}-${i}` ? { ...m, hidden: false, isNew: true } : m)
+        );
+      }
       // Save full response as single DB record
       if (currentSessionId) {
         await saveMessageToDb(currentSessionId, { id: ts.toString(), role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
@@ -440,7 +456,16 @@ const Index = () => {
           )}
 
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew} imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl} />
+            <ChatMessage
+              key={msg.id}
+              role={msg.role}
+              content={msg.content}
+              isNew={msg.isNew}
+              imageUrl={msg.imageUrl}
+              editedImageUrl={msg.editedImageUrl}
+              showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
+              hidden={msg.hidden}
+            />
           ))}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">

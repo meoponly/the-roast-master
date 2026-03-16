@@ -137,6 +137,9 @@ const Auth = () => {
             </button>
           </p>
         </div>
+        <p className="text-[9px] text-muted-foreground/50 text-center mt-4 font-mono tracking-wider">
+          developed by meoponly
+        </p>
       </div>
     </div>
   );

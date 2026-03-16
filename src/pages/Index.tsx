@@ -348,9 +348,16 @@ const Index = () => {
           prev.map(m => m.id === `${ts}-${i}` ? { ...m, hidden: false, isNew: true } : m)
         );
       }
-      // Save full response as single DB record
+      // Save each bubble as a separate DB record
       if (currentSessionId) {
-        await saveMessageToDb(currentSessionId, { id: ts.toString(), role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
+        for (let i = 0; i < finalMessages.length; i++) {
+          await saveMessageToDb(currentSessionId, {
+            id: `${ts}-${i}`,
+            role: "assistant",
+            content: finalMessages[i].trim(),
+            editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+          });
+        }
       }
     } catch (err) {
       console.error("Stream error:", err);

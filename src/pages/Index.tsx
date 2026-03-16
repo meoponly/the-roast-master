@@ -367,6 +367,26 @@ const Index = () => {
     }
   }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled, userId]);
 
+  const handleRegenerate = useCallback(() => {
+    // Find the last user message and resend
+    const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+    if (!lastUserMsg || isTyping) return;
+    // Remove all assistant messages after the last user message
+    const lastUserIdx = messages.lastIndexOf(lastUserMsg);
+    const trimmed = messages.slice(0, lastUserIdx + 1);
+    setMessages(trimmed);
+    // Re-send
+    const text = lastUserMsg.content;
+    const img = lastUserMsg.imageUrl;
+    // Remove the user msg too since handleSend will re-add it
+    setMessages(messages.slice(0, lastUserIdx));
+    handleSend(text, img);
+  }, [messages, isTyping, handleSend]);
+
+  const handleRoastHarder = useCallback(() => {
+    if (isTyping) return;
+    handleSend("That was weak. Roast me HARDER. Go full savage mode. No mercy.");
+  }, [isTyping, handleSend]);
   const handleNewChat = () => { setActiveSessionId(null); setMessages([]); };
 
   const handleSelectSession = async (id: string) => {

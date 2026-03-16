@@ -249,12 +249,10 @@ const Index = () => {
     let sentenceBuffer: string[] = [];
 
     const splitIntoMessages = (fullText: string): string[] => {
-      // Split on double newlines or sentence boundaries that form logical groups
       const parts = fullText.split(/\n{2,}/).filter(p => p.trim());
-      if (parts.length > 1) return parts;
-      // Fallback: split on single newlines if they form separate thoughts
+      if (parts.length > 1) return parts.slice(0, 3); // Max 3 bubbles
       const lines = fullText.split(/\n/).filter(p => p.trim());
-      if (lines.length > 1) return lines;
+      if (lines.length > 1) return lines.slice(0, 3);
       return [fullText];
     };
 

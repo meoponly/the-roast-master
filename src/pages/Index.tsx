@@ -498,18 +498,26 @@ const Index = () => {
             </div>
           )}
 
-          {messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              role={msg.role}
-              content={msg.content}
-              isNew={msg.isNew}
-              imageUrl={msg.imageUrl}
-              editedImageUrl={msg.editedImageUrl}
-              showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
-              hidden={msg.hidden}
-            />
-          ))}
+          {messages.map((msg, idx) => {
+            // Determine if this is the last message in an assistant sequence
+            const isLastInSequence = msg.role === "assistant" && !msg.hidden &&
+              (idx === messages.length - 1 || messages[idx + 1]?.role !== "assistant" || messages[idx + 1]?.hidden);
+            return (
+              <ChatMessage
+                key={msg.id}
+                role={msg.role}
+                content={msg.content}
+                isNew={msg.isNew}
+                imageUrl={msg.imageUrl}
+                editedImageUrl={msg.editedImageUrl}
+                showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
+                hidden={msg.hidden}
+                isLastInSequence={isLastInSequence}
+                onRegenerate={isLastInSequence ? handleRegenerate : undefined}
+                onRoastHarder={isLastInSequence ? handleRoastHarder : undefined}
+              />
+            );
+          })}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
               <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">

@@ -367,6 +367,26 @@ const Index = () => {
     }
   }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled, userId]);
 
+  const handleRegenerate = useCallback(() => {
+    // Find the last user message and resend
+    const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+    if (!lastUserMsg || isTyping) return;
+    // Remove all assistant messages after the last user message
+    const lastUserIdx = messages.lastIndexOf(lastUserMsg);
+    const trimmed = messages.slice(0, lastUserIdx + 1);
+    setMessages(trimmed);
+    // Re-send
+    const text = lastUserMsg.content;
+    const img = lastUserMsg.imageUrl;
+    // Remove the user msg too since handleSend will re-add it
+    setMessages(messages.slice(0, lastUserIdx));
+    handleSend(text, img);
+  }, [messages, isTyping, handleSend]);
+
+  const handleRoastHarder = useCallback(() => {
+    if (isTyping) return;
+    handleSend("That was weak. Roast me HARDER. Go full savage mode. No mercy.");
+  }, [isTyping, handleSend]);
   const handleNewChat = () => { setActiveSessionId(null); setMessages([]); };
 
   const handleSelectSession = async (id: string) => {
@@ -478,18 +498,26 @@ const Index = () => {
             </div>
           )}
 
-          {messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              role={msg.role}
-              content={msg.content}
-              isNew={msg.isNew}
-              imageUrl={msg.imageUrl}
-              editedImageUrl={msg.editedImageUrl}
-              showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
-              hidden={msg.hidden}
-            />
-          ))}
+          {messages.map((msg, idx) => {
+            // Determine if this is the last message in an assistant sequence
+            const isLastInSequence = msg.role === "assistant" && !msg.hidden &&
+              (idx === messages.length - 1 || messages[idx + 1]?.role !== "assistant" || messages[idx + 1]?.hidden);
+            return (
+              <ChatMessage
+                key={msg.id}
+                role={msg.role}
+                content={msg.content}
+                isNew={msg.isNew}
+                imageUrl={msg.imageUrl}
+                editedImageUrl={msg.editedImageUrl}
+                showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
+                hidden={msg.hidden}
+                isLastInSequence={isLastInSequence}
+                onRegenerate={isLastInSequence ? handleRegenerate : undefined}
+                onRoastHarder={isLastInSequence ? handleRoastHarder : undefined}
+              />
+            );
+          })}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
               <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">

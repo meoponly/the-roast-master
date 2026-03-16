@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Flame, Scissors } from "lucide-react";
+import MessageActions from "./MessageActions";
 
 type ChatMessageProps = {
   role: "user" | "assistant";
@@ -9,9 +10,12 @@ type ChatMessageProps = {
   editedImageUrl?: string;
   showTimestamp?: boolean;
   hidden?: boolean;
+  isLastInSequence?: boolean;
+  onRegenerate?: () => void;
+  onRoastHarder?: () => void;
 };
 
-const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimestamp = true, hidden }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimestamp = true, hidden, isLastInSequence, onRegenerate, onRoastHarder }: ChatMessageProps) => {
   const isUser = role === "user";
 
   const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -65,6 +69,13 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
         )}
         <p className="whitespace-pre-wrap">{content}</p>
         </div>
+        {!isUser && isLastInSequence && (
+          <MessageActions
+            content={content}
+            onRegenerate={onRegenerate}
+            onRoastHarder={onRoastHarder}
+          />
+        )}
         {isUser && (
           <span className="text-[9px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
             {timestamp}

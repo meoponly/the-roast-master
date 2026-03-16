@@ -177,10 +177,28 @@ const Index = () => {
     const { data } = await supabase
       .from("messages").select("*").eq("conversation_id", sessionId).order("created_at", { ascending: true });
     if (!data || data.length === 0) return [];
-    return data.map((m: any) => ({
-      id: m.id, role: m.role as "user" | "assistant", content: m.content,
-      imageUrl: m.image_url || undefined, editedImageUrl: m.edited_image_url || undefined,
-    }));
+    
+    // Group consecutive assistant messages to assign sequenceIndex
+    let seqCounter = 0;
+    let lastRole = "";
+    return data.map((m: any, idx: number) => {
+      if (m.role === "assistant") {
+        // Check if previous message was also assistant (same sequence)
+        if (lastRole === "assistant") {
+          seqCounter++;
+        } else {
+          seqCounter = 0;
+        }
+      } else {
+        seqCounter = 0;
+      }
+      lastRole = m.role;
+      return {
+        id: m.id, role: m.role as "user" | "assistant", content: m.content,
+        imageUrl: m.image_url || undefined, editedImageUrl: m.edited_image_url || undefined,
+        sequenceIndex: m.role === "assistant" ? seqCounter : undefined,
+      };
+    });
   };
 
   const saveSession = async (firstMsg: string) => {
@@ -231,12 +249,10 @@ const Index = () => {
     let sentenceBuffer: string[] = [];
 
     const splitIntoMessages = (fullText: string): string[] => {
-      // Split on double newlines or sentence boundaries that form logical groups
       const parts = fullText.split(/\n{2,}/).filter(p => p.trim());
-      if (parts.length > 1) return parts;
-      // Fallback: split on single newlines if they form separate thoughts
+      if (parts.length > 1) return parts.slice(0, 3); // Max 3 bubbles
       const lines = fullText.split(/\n/).filter(p => p.trim());
-      if (lines.length > 1) return lines;
+      if (lines.length > 1) return lines.slice(0, 3);
       return [fullText];
     };
 
@@ -332,9 +348,16 @@ const Index = () => {
           prev.map(m => m.id === `${ts}-${i}` ? { ...m, hidden: false, isNew: true } : m)
         );
       }
-      // Save full response as single DB record
+      // Save each bubble as a separate DB record
       if (currentSessionId) {
-        await saveMessageToDb(currentSessionId, { id: ts.toString(), role: "assistant", content: assistantSoFar, editedImageUrl: editedImg || undefined });
+        for (let i = 0; i < finalMessages.length; i++) {
+          await saveMessageToDb(currentSessionId, {
+            id: `${ts}-${i}`,
+            role: "assistant",
+            content: finalMessages[i].trim(),
+            editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
+          });
+        }
       }
     } catch (err) {
       console.error("Stream error:", err);

@@ -531,7 +531,9 @@ const Index = () => {
           )}
           </div>
         </div>
-        <ChatInput onSend={handleSend} disabled={isTyping} />
+        <div className="max-w-[1000px] mx-auto px-2 sm:px-4">
+          <ChatInput onSend={handleSend} disabled={isTyping} />
+        </div>
       </div>
       <PhotoUploadModal open={showPhotoModal} onClose={() => setShowPhotoModal(false)} onSubmit={handlePhotoRoast} />
     </div>

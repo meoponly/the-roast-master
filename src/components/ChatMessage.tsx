@@ -25,7 +25,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-1.5",
+        "flex gap-2 px-2 py-0.5",
         isUser ? "justify-end animate-fade-in" : "justify-start",
         !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}

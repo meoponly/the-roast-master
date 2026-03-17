@@ -25,7 +25,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-1.5",
+        "flex gap-2 px-2 py-0.5",
         isUser ? "justify-end animate-fade-in" : "justify-start",
         !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}
@@ -35,7 +35,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
           VX
         </div>
       )}
-      <div className="flex flex-col gap-1 max-w-[80%]">
+      <div className="flex flex-col gap-0.5 max-w-[65%]">
         {!isUser && showTimestamp && (
           <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1">
             VOID-X • {timestamp}

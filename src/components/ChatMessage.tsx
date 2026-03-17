@@ -35,7 +35,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
           VX
         </div>
       )}
-      <div className="flex flex-col gap-1 max-w-[80%]">
+      <div className="flex flex-col gap-0.5 max-w-[65%]">
         {!isUser && showTimestamp && (
           <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1">
             VOID-X • {timestamp}

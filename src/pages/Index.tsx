@@ -529,6 +529,7 @@ const Index = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
         <ChatInput onSend={handleSend} disabled={isTyping} />
       </div>

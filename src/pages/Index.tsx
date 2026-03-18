@@ -472,8 +472,7 @@ const Index = () => {
           </span>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto py-2 relative z-10">
-          <div className="max-w-[1000px] mx-auto px-2 sm:px-4">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
               <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" loading="eager" />
@@ -529,11 +528,8 @@ const Index = () => {
               </div>
             </div>
           )}
-          </div>
         </div>
-        <div className="max-w-[1000px] mx-auto px-2 sm:px-4">
-          <ChatInput onSend={handleSend} disabled={isTyping} />
-        </div>
+        <ChatInput onSend={handleSend} disabled={isTyping} />
       </div>
       <PhotoUploadModal open={showPhotoModal} onClose={() => setShowPhotoModal(false)} onSubmit={handlePhotoRoast} />
     </div>

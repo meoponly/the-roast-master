@@ -473,6 +473,7 @@ const Index = () => {
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
+          <div className="max-w-[1000px] mx-auto px-2 sm:px-4">
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
               <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" loading="eager" />

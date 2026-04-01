@@ -25,28 +25,28 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-1.5",
+        "flex gap-3 px-4 py-2",
         isUser ? "justify-end animate-fade-in" : "justify-start",
         !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}
     >
       {!isUser && (
-        <div className={cn("flex-shrink-0 w-8 h-8 rounded bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text", !showTimestamp && "invisible")}>
+        <div className={cn("flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text shadow-sm", !showTimestamp && "invisible")}>
           VX
         </div>
       )}
-      <div className={cn("flex flex-col gap-1", isUser ? "max-w-[70%]" : "max-w-[65%]")}>
+      <div className={cn("flex flex-col gap-1.5", isUser ? "max-w-[70%]" : "max-w-[65%]")}>
         {!isUser && showTimestamp && (
-          <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1">
+          <span className="text-[9px] text-muted-foreground/80 font-mono tracking-wider ml-1">
             VOID-X • {timestamp}
           </span>
         )}
         <div
           className={cn(
-            "rounded px-4 py-3 text-sm leading-relaxed",
+            "rounded-xl px-4 py-3 text-sm leading-relaxed transition-colors",
             isUser
-              ? "bg-secondary text-secondary-foreground border border-border"
-              : "bg-card text-foreground border border-primary/20"
+              ? "bg-secondary text-secondary-foreground border border-border shadow-sm"
+              : "bg-card text-foreground border border-primary/20 shadow-[0_2px_8px_hsl(120_100%_45%/0.06)]"
           )}
         >
         {imageUrl && (

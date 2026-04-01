@@ -464,10 +464,10 @@ const Index = () => {
         )}
 
         {/* System status bar */}
-        <div className="flex justify-between items-center px-4 py-1.5 border-b border-border text-[10px] font-mono tracking-widest z-20 relative">
-          <span className="text-primary/70 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
-          <span className="text-primary/70 neon-text flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm">
+          <span className="text-primary/50 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-primary/50 neon-text flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(120_100%_45%/0.5)]" />
             SYSTEM ONLINE
           </span>
         </div>
@@ -480,7 +480,7 @@ const Index = () => {
               <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
                 VOID-X
               </h1>
-              <p className="text-xs text-muted-foreground font-mono max-w-xs text-center mb-8">
+              <p className="text-xs text-muted-foreground/70 font-mono max-w-xs text-center mb-8 leading-relaxed">
                 {emptyChatPhrase}
               </p>
               {/* Suggestion Cards */}
@@ -489,10 +489,10 @@ const Index = () => {
                   <button
                     key={card.title}
                     onClick={() => handleSuggestionClick(card.prompt)}
-                    className="flex flex-col gap-1 p-3 rounded-lg border border-border bg-card hover:bg-secondary/80 transition-colors text-left group"
+                    className="flex flex-col gap-1.5 p-4 rounded-xl border border-border/60 bg-card hover:bg-secondary/60 hover:border-primary/30 hover:shadow-[0_0_12px_hsl(120_100%_45%/0.08)] transition-all duration-200 text-left group active:scale-[0.98]"
                   >
-                    <span className="text-xs font-bold text-foreground group-hover:neon-text">{card.title}</span>
-                    <span className="text-[10px] text-muted-foreground leading-tight">{card.description}</span>
+                    <span className="text-xs font-bold text-foreground group-hover:neon-text transition-all duration-200">{card.title}</span>
+                    <span className="text-[10px] text-muted-foreground/70 leading-tight">{card.description}</span>
                   </button>
                 ))}
               </div>
@@ -521,10 +521,10 @@ const Index = () => {
           })}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center shadow-sm">
                 <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />
               </div>
-              <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
+              <div className="bg-card border border-primary/20 rounded-xl px-4 py-3 text-sm text-muted-foreground shadow-[0_2px_8px_hsl(120_100%_45%/0.06)]">
                 <span className="blink-cursor">{typingPhrase}</span>
               </div>
             </div>

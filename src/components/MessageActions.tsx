@@ -26,7 +26,7 @@ const MessageActions = ({ content, onRegenerate, onRoastHarder }: MessageActions
     }
   };
 
-  const btnClass = "p-1 rounded hover:bg-secondary/80 transition-colors text-muted-foreground hover:text-foreground";
+  const btnClass = "p-1.5 rounded-lg hover:bg-secondary/80 transition-all duration-150 text-muted-foreground hover:text-foreground hover:scale-110 active:scale-95";
 
   return (
     <div className="flex items-center gap-0.5 mt-1 ml-1">

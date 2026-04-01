@@ -50,6 +50,7 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
           SEND
         </button>
       </div>
+      </div>
     </div>
   );
 };

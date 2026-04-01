@@ -29,6 +29,7 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
 
   return (
     <div className="border-t border-border p-4">
+      <div className="max-w-[1000px] mx-auto">
       <div className="flex gap-3 items-end">
         <span className="text-foreground neon-text text-sm pb-2">{">"}</span>
         <textarea

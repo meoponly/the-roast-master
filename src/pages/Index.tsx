@@ -480,7 +480,7 @@ const Index = () => {
               <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
                 VOID-X
               </h1>
-              <p className="text-xs text-muted-foreground font-mono max-w-xs text-center mb-8">
+              <p className="text-xs text-muted-foreground/70 font-mono max-w-xs text-center mb-8 leading-relaxed">
                 {emptyChatPhrase}
               </p>
               {/* Suggestion Cards */}
@@ -489,10 +489,10 @@ const Index = () => {
                   <button
                     key={card.title}
                     onClick={() => handleSuggestionClick(card.prompt)}
-                    className="flex flex-col gap-1 p-3 rounded-lg border border-border bg-card hover:bg-secondary/80 transition-colors text-left group"
+                    className="flex flex-col gap-1.5 p-4 rounded-xl border border-border/60 bg-card hover:bg-secondary/60 hover:border-primary/30 hover:shadow-[0_0_12px_hsl(120_100%_45%/0.08)] transition-all duration-200 text-left group active:scale-[0.98]"
                   >
-                    <span className="text-xs font-bold text-foreground group-hover:neon-text">{card.title}</span>
-                    <span className="text-[10px] text-muted-foreground leading-tight">{card.description}</span>
+                    <span className="text-xs font-bold text-foreground group-hover:neon-text transition-all duration-200">{card.title}</span>
+                    <span className="text-[10px] text-muted-foreground/70 leading-tight">{card.description}</span>
                   </button>
                 ))}
               </div>

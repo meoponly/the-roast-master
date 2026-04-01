@@ -521,10 +521,10 @@ const Index = () => {
           })}
           {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
             <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded-xl bg-secondary border border-border flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center shadow-sm">
                 <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />
               </div>
-              <div className="bg-card border border-border rounded px-4 py-3 text-sm text-muted-foreground">
+              <div className="bg-card border border-primary/20 rounded-xl px-4 py-3 text-sm text-muted-foreground shadow-[0_2px_8px_hsl(120_100%_45%/0.06)]">
                 <span className="blink-cursor">{typingPhrase}</span>
               </div>
             </div>

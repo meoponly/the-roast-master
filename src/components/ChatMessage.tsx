@@ -83,7 +83,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
         )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono">
+        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono shadow-sm">
           {">"}_
         </div>
       )}

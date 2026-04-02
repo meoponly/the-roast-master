@@ -464,9 +464,9 @@ const Index = () => {
         )}
 
         {/* System status bar */}
-        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm">
-          <span className="text-primary/50 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
-          <span className="text-primary/50 neon-text flex items-center gap-1.5">
+        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm" role="status" aria-label="System status">
+          <span className="text-muted-foreground neon-text">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-muted-foreground neon-text flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(120_100%_45%/0.5)]" />
             SYSTEM ONLINE
           </span>
@@ -477,22 +477,22 @@ const Index = () => {
           {!hasMessages && !isTyping && (
             <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
               <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" loading="eager" />
-              <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-2">
+              <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-3">
                 VOID-X
               </h1>
-              <p className="text-xs text-muted-foreground/70 font-mono max-w-xs text-center mb-8 leading-relaxed">
+              <p className="text-sm text-muted-foreground font-mono max-w-sm text-center mb-8 leading-relaxed">
                 {emptyChatPhrase}
               </p>
               {/* Suggestion Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl w-full">
                 {SUGGESTION_CARDS.map((card) => (
                   <button
                     key={card.title}
                     onClick={() => handleSuggestionClick(card.prompt)}
-                    className="flex flex-col gap-1.5 p-4 rounded-xl border border-border/60 bg-card hover:bg-secondary/60 hover:border-primary/30 hover:shadow-[0_0_12px_hsl(120_100%_45%/0.08)] transition-all duration-200 text-left group active:scale-[0.98]"
+                    className="flex flex-col gap-2 p-4 rounded-xl border border-border/60 bg-card hover:bg-secondary/60 hover:border-primary/30 hover:shadow-[0_0_16px_hsl(120_100%_45%/0.1)] transition-all duration-200 text-left group active:scale-[0.97] min-h-[80px]"
                   >
-                    <span className="text-xs font-bold text-foreground group-hover:neon-text transition-all duration-200">{card.title}</span>
-                    <span className="text-[10px] text-muted-foreground/70 leading-tight">{card.description}</span>
+                    <span className="text-sm font-bold text-foreground group-hover:neon-text transition-all duration-200">{card.title}</span>
+                    <span className="text-xs text-muted-foreground leading-snug">{card.description}</span>
                   </button>
                 ))}
               </div>

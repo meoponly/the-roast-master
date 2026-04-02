@@ -26,38 +26,40 @@ const MessageActions = ({ content, onRegenerate, onRoastHarder }: MessageActions
     }
   };
 
-  const btnClass = "p-1.5 rounded-lg hover:bg-secondary/80 transition-all duration-150 text-muted-foreground hover:text-foreground hover:scale-110 active:scale-95";
+  const btnClass = "p-2 rounded-lg hover:bg-secondary/80 transition-all duration-150 text-muted-foreground hover:text-foreground hover:scale-110 active:scale-95 min-w-[32px] min-h-[32px] flex items-center justify-center";
 
   return (
-    <div className="flex items-center gap-0.5 mt-1 ml-1">
-      <button onClick={handleCopy} className={btnClass} title="Copy">
-        <Copy className="w-3 h-3" />
+    <div className="flex items-center gap-1 mt-1.5 ml-1">
+      <button onClick={handleCopy} className={btnClass} title="Copy" aria-label="Copy response">
+        <Copy className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => { setLiked(true); toast.success("Good roast noted 🔥"); }}
         className={cn(btnClass, liked === true && "text-primary")}
         title="Good prompt"
+        aria-label="Mark as good roast"
       >
-        <ThumbsUp className="w-3 h-3" />
+        <ThumbsUp className="w-3.5 h-3.5" />
       </button>
       <button
         onClick={() => { setLiked(false); toast("Bad roast noted 💀"); }}
         className={cn(btnClass, liked === false && "text-destructive")}
         title="Bad prompt"
+        aria-label="Mark as bad roast"
       >
-        <ThumbsDown className="w-3 h-3" />
+        <ThumbsDown className="w-3.5 h-3.5" />
       </button>
-      <button onClick={handleShare} className={btnClass} title="Share">
-        <Share2 className="w-3 h-3" />
+      <button onClick={handleShare} className={btnClass} title="Share" aria-label="Share roast">
+        <Share2 className="w-3.5 h-3.5" />
       </button>
       {onRegenerate && (
-        <button onClick={onRegenerate} className={btnClass} title="Regenerate">
-          <RefreshCw className="w-3 h-3" />
+        <button onClick={onRegenerate} className={btnClass} title="Regenerate" aria-label="Regenerate roast">
+          <RefreshCw className="w-3.5 h-3.5" />
         </button>
       )}
       {onRoastHarder && (
-        <button onClick={onRoastHarder} className={cn(btnClass, "hover:text-accent")} title="Roast harder">
-          <span className="text-xs">🔥</span>
+        <button onClick={onRoastHarder} className={cn(btnClass, "hover:text-accent")} title="Roast harder" aria-label="Roast harder">
+          <span className="text-sm">🔥</span>
         </button>
       )}
     </div>

@@ -37,7 +37,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
       )}
       <div className={cn("flex flex-col gap-1.5", isUser ? "max-w-[70%]" : "max-w-[65%]")}>
         {!isUser && showTimestamp && (
-          <span className="text-[9px] text-muted-foreground/80 font-mono tracking-wider ml-1">
+          <span className="text-[10px] text-muted-foreground font-mono tracking-wider ml-1">
             VOID-X • {timestamp}
           </span>
         )}
@@ -46,28 +46,28 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
             "rounded-xl px-4 py-3 text-sm leading-relaxed transition-colors",
             isUser
               ? "bg-secondary text-secondary-foreground border border-border shadow-sm"
-              : "bg-card text-foreground border border-primary/20 shadow-[0_2px_8px_hsl(120_100%_45%/0.06)]"
+              : "bg-card text-card-foreground border border-primary/20 shadow-[0_2px_10px_hsl(120_100%_45%/0.08)]"
           )}
         >
         {imageUrl && (
-          <div className="mb-2 relative">
-            <img src={imageUrl} alt="Uploaded style" className="rounded max-h-48 object-cover border border-border" />
-            <div className="absolute top-1 left-1 bg-accent/90 text-accent-foreground text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-              <Flame className="w-2.5 h-2.5" />
+          <div className="mb-3 relative">
+            <img src={imageUrl} alt="Uploaded style" className="rounded-lg max-h-48 object-cover border border-border" loading="lazy" />
+            <div className="absolute top-1.5 left-1.5 bg-accent/90 text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+              <Flame className="w-3 h-3" />
               STYLE ROAST
             </div>
           </div>
         )}
         {editedImageUrl && (
-          <div className="mb-2 relative">
-            <img src={editedImageUrl} alt="VOID-X's version" className="rounded max-h-64 object-cover border-2 border-accent/50" />
-            <div className="absolute top-1 left-1 bg-accent/90 text-accent-foreground text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-              <Scissors className="w-2.5 h-2.5" />
+          <div className="mb-3 relative">
+            <img src={editedImageUrl} alt="VOID-X's version" className="rounded-lg max-h-64 object-cover border-2 border-accent/50" loading="lazy" />
+            <div className="absolute top-1.5 left-1.5 bg-accent/90 text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+              <Scissors className="w-3 h-3" />
               VOID-X MAKEOVER 💀
             </div>
           </div>
         )}
-        <p className="whitespace-pre-wrap">{content}</p>
+        <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
         </div>
         {!isUser && isLastInSequence && (
           <MessageActions
@@ -77,7 +77,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
           />
         )}
         {isUser && (
-          <span className="text-[9px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
+          <span className="text-[10px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
             {timestamp}
           </span>
         )}

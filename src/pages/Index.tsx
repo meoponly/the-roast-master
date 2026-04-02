@@ -464,9 +464,9 @@ const Index = () => {
         )}
 
         {/* System status bar */}
-        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm">
-          <span className="text-primary/50 neon-text">ENCRYPTION: AES-256-ACTIVE</span>
-          <span className="text-primary/50 neon-text flex items-center gap-1.5">
+        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm" role="status" aria-label="System status">
+          <span className="text-muted-foreground neon-text">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-muted-foreground neon-text flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(120_100%_45%/0.5)]" />
             SYSTEM ONLINE
           </span>

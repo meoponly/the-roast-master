@@ -13,7 +13,6 @@ const Auth = () => {
   const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
 
-  // Check if already authenticated
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -32,6 +31,10 @@ const Auth = () => {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      toast.error("Fill in all fields");
+      return;
+    }
     setLoading(true);
     try {
       if (isLogin) {
@@ -68,27 +71,27 @@ const Auth = () => {
   if (checking) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-4 h-4 rounded-full bg-accent animate-pulse" />
+        <div className="w-5 h-5 rounded-full bg-primary animate-pulse shadow-[0_0_12px_hsl(120_100%_45%/0.5)]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center scanlines relative">
-      <div className="w-full max-w-sm mx-auto p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center scanlines relative px-4">
+      <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
-          <img src={voidxLogo} alt="VOID-X" className="w-12 h-12 mx-auto mb-3 rounded-2xl shadow-lg" />
-          <h1 className="text-xl font-bold text-foreground neon-text tracking-wider font-display">VOID-X</h1>
-          <p className="text-xs text-muted-foreground mt-1">Enter the void. Get roasted.</p>
+          <img src={voidxLogo} alt="VOID-X" className="w-14 h-14 mx-auto mb-4 rounded-2xl shadow-lg" />
+          <h1 className="font-display text-2xl font-bold text-foreground neon-text tracking-wider">VOID-X</h1>
+          <p className="text-sm text-muted-foreground mt-2">Enter the void. Get roasted.</p>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+        <div className="bg-card border border-border rounded-xl p-6 space-y-5 shadow-lg">
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-mono transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-secondary hover:bg-secondary/80 text-foreground text-sm font-mono transition-all disabled:opacity-50 min-h-[48px] hover:border-primary/30"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
               <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
               <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -99,18 +102,19 @@ const Auth = () => {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-[10px] text-muted-foreground">OR</span>
+            <span className="text-xs text-muted-foreground">OR</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <form onSubmit={handleEmailAuth} className="space-y-3">
+          <form onSubmit={handleEmailAuth} className="space-y-4">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@void.com"
               required
-              className="w-full bg-input border border-border rounded px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring font-mono"
+              className="w-full bg-input border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 font-mono min-h-[44px] transition-all"
+              aria-label="Email address"
             />
             <input
               type="password"
@@ -119,27 +123,34 @@ const Auth = () => {
               placeholder="password"
               required
               minLength={6}
-              className="w-full bg-input border border-border rounded px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring font-mono"
+              className="w-full bg-input border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 font-mono min-h-[44px] transition-all"
+              aria-label="Password"
             />
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded text-xs font-bold font-mono hover:brightness-110 transition-all disabled:opacity-50"
+              className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold font-mono hover:brightness-110 hover:shadow-[0_0_16px_hsl(120_100%_45%/0.35)] transition-all disabled:opacity-50 min-h-[48px] active:scale-[0.98]"
             >
-              {loading ? "..." : isLogin ? "Sign In" : "Sign Up"}
+              {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
             </button>
           </form>
 
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-xs text-muted-foreground text-center">
             {isLogin ? "No account?" : "Already have one?"}{" "}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-accent hover:underline">
+            <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
               {isLogin ? "Sign up" : "Sign in"}
             </button>
           </p>
         </div>
-        <p className="text-[9px] text-muted-foreground/50 text-center mt-4 font-mono tracking-wider">
-          developed by meoponly
-        </p>
+
+        <footer className="text-center mt-6 space-y-1">
+          <p className="text-[10px] text-muted-foreground/50 font-mono tracking-wider">
+            developed by meoponly
+          </p>
+          <p className="text-[9px] text-muted-foreground/30 font-mono">
+            For entertainment only.
+          </p>
+        </footer>
       </div>
     </div>
   );

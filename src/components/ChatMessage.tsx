@@ -17,7 +17,6 @@ type ChatMessageProps = {
 
 const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimestamp = true, hidden, isLastInSequence, onRegenerate, onRoastHarder }: ChatMessageProps) => {
   const isUser = role === "user";
-
   const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 
   if (hidden) return null;
@@ -31,11 +30,14 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
       )}
     >
       {!isUser && (
-        <div className={cn("flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary text-[10px] font-bold tracking-wider neon-text shadow-sm", !showTimestamp && "invisible")}>
+        <div className={cn(
+          "flex-shrink-0 w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center text-primary text-[10px] font-bold font-mono tracking-wider",
+          !showTimestamp && "invisible"
+        )}>
           VX
         </div>
       )}
-      <div className={cn("flex flex-col gap-1.5", isUser ? "max-w-[70%]" : "max-w-[65%]")}>
+      <div className={cn("flex flex-col gap-1.5", isUser ? "max-w-[65%]" : "max-w-[65%]")}>
         {!isUser && showTimestamp && (
           <span className="text-[10px] text-muted-foreground font-mono tracking-wider ml-1">
             VOID-X • {timestamp}
@@ -43,38 +45,34 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
         )}
         <div
           className={cn(
-            "rounded-xl px-4 py-3 text-sm leading-relaxed transition-colors",
+            "rounded-lg px-4 py-3 text-sm leading-relaxed transition-colors relative",
             isUser
-              ? "bg-secondary text-secondary-foreground border border-border shadow-sm"
-              : "bg-card text-card-foreground border border-primary/20 shadow-[0_2px_10px_hsl(120_100%_45%/0.08)]"
+              ? "bg-secondary text-foreground border border-border"
+              : "bg-card text-foreground border border-border scanlines-output"
           )}
         >
-        {imageUrl && (
-          <div className="mb-3 relative">
-            <img src={imageUrl} alt="Uploaded style" className="rounded-lg max-h-48 object-cover border border-border" loading="lazy" />
-            <div className="absolute top-1.5 left-1.5 bg-accent/90 text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
-              <Flame className="w-3 h-3" />
-              STYLE ROAST
+          {imageUrl && (
+            <div className="mb-3 relative">
+              <img src={imageUrl} alt="Uploaded style" className="rounded-md max-h-48 object-cover border border-border" loading="lazy" />
+              <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
+                <Flame className="w-3 h-3" />
+                STYLE ROAST
+              </div>
             </div>
-          </div>
-        )}
-        {editedImageUrl && (
-          <div className="mb-3 relative">
-            <img src={editedImageUrl} alt="VOID-X's version" className="rounded-lg max-h-64 object-cover border-2 border-accent/50" loading="lazy" />
-            <div className="absolute top-1.5 left-1.5 bg-accent/90 text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
-              <Scissors className="w-3 h-3" />
-              VOID-X MAKEOVER 💀
+          )}
+          {editedImageUrl && (
+            <div className="mb-3 relative">
+              <img src={editedImageUrl} alt="VOID-X's version" className="rounded-md max-h-64 object-cover border border-accent/40" loading="lazy" />
+              <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
+                <Scissors className="w-3 h-3" />
+                MAKEOVER
+              </div>
             </div>
-          </div>
-        )}
-        <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+          )}
+          <p className={cn("whitespace-pre-wrap leading-relaxed", !isUser && "font-mono text-[13px]")}>{content}</p>
         </div>
         {!isUser && isLastInSequence && (
-          <MessageActions
-            content={content}
-            onRegenerate={onRegenerate}
-            onRoastHarder={onRoastHarder}
-          />
+          <MessageActions content={content} onRegenerate={onRegenerate} onRoastHarder={onRoastHarder} />
         )}
         {isUser && (
           <span className="text-[10px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
@@ -83,7 +81,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
         )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono shadow-sm">
+        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono">
           {">"}_
         </div>
       )}

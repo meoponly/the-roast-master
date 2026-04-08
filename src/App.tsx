@@ -18,12 +18,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // Set up listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
-    // Then check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -33,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-4 h-4 rounded-full bg-accent animate-pulse" />
+      <div className="w-4 h-4 rounded-full bg-primary animate-pulse" />
     </div>
   );
 

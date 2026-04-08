@@ -59,12 +59,8 @@ const generateRoastTitle = (text: string): string => {
 };
 
 const extractMemory = (text: string): string | null => {
-  const patterns = [
-    /(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i,
-  ];
-  if (patterns.some((p) => p.test(text)) && text.length > 10 && text.length < 200) {
-    return text.slice(0, 100);
-  }
+  const patterns = [/(?:i am|i'm|my name is|i work|i live|i study|i like|i love|i hate|i'm from|i have|i do|my job|my age)/i];
+  if (patterns.some((p) => p.test(text)) && text.length > 10 && text.length < 200) return text.slice(0, 100);
   return null;
 };
 
@@ -79,12 +75,8 @@ const Index = () => {
   const [memories, setMemories] = useState<Memory[]>(() => {
     try { return JSON.parse(localStorage.getItem("voidx-memories") || "[]"); } catch { return []; }
   });
-  const [chatHistoryEnabled, setChatHistoryEnabled] = useState(() => {
-    return localStorage.getItem("voidx-chat-history") !== "false";
-  });
-  const [personalizationEnabled, setPersonalizationEnabled] = useState(() => {
-    return localStorage.getItem("voidx-personalization") !== "false";
-  });
+  const [chatHistoryEnabled, setChatHistoryEnabled] = useState(() => localStorage.getItem("voidx-chat-history") !== "false");
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(() => localStorage.getItem("voidx-personalization") !== "false");
   const [userProfile, setUserProfile] = useState({ displayName: "User", handle: "@user", avatarUrl: null as string | null });
   const [emptyChatPhrase] = useState(getEmptyChatPhrase());
   const [userId, setUserId] = useState<string | null>(null);
@@ -94,18 +86,12 @@ const Index = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const hasMessages = messages.length > 0;
-
-  // On mobile, sidebar is always a drawer
   const effectiveCollapsed = isMobile ? !mobileDrawerOpen : sidebarCollapsed;
   const handleToggleSidebar = () => {
-    if (isMobile) {
-      setMobileDrawerOpen(!mobileDrawerOpen);
-    } else {
-      setSidebarCollapsed(!sidebarCollapsed);
-    }
+    if (isMobile) setMobileDrawerOpen(!mobileDrawerOpen);
+    else setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Load profile
   useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -134,22 +120,14 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [isTyping]);
 
-  useEffect(() => {
-    localStorage.setItem("voidx-memories", JSON.stringify(memories));
-  }, [memories]);
+  useEffect(() => { localStorage.setItem("voidx-memories", JSON.stringify(memories)); }, [memories]);
 
   useEffect(() => {
     if (!userId) return;
     const loadSessions = async () => {
-      const { data } = await supabase
-        .from("chat_sessions")
-        .select("*")
-        .order("updated_at", { ascending: false });
+      const { data } = await supabase.from("chat_sessions").select("*").order("updated_at", { ascending: false });
       if (data) {
-        setSessions(data.map((s: any) => ({
-          id: s.id, title: s.title, firstMessage: s.first_message, createdAt: s.created_at,
-        })));
-        // Auto-load most recent session
+        setSessions(data.map((s: any) => ({ id: s.id, title: s.title, firstMessage: s.first_message, createdAt: s.created_at })));
         if (data.length > 0 && !activeSessionId) {
           const mostRecent = data[0];
           setActiveSessionId(mostRecent.id);
@@ -174,24 +152,14 @@ const Index = () => {
   };
 
   const loadSessionMessages = async (sessionId: string): Promise<Message[]> => {
-    const { data } = await supabase
-      .from("messages").select("*").eq("conversation_id", sessionId).order("created_at", { ascending: true });
+    const { data } = await supabase.from("messages").select("*").eq("conversation_id", sessionId).order("created_at", { ascending: true });
     if (!data || data.length === 0) return [];
-    
-    // Group consecutive assistant messages to assign sequenceIndex
     let seqCounter = 0;
     let lastRole = "";
-    return data.map((m: any, idx: number) => {
+    return data.map((m: any) => {
       if (m.role === "assistant") {
-        // Check if previous message was also assistant (same sequence)
-        if (lastRole === "assistant") {
-          seqCounter++;
-        } else {
-          seqCounter = 0;
-        }
-      } else {
-        seqCounter = 0;
-      }
+        seqCounter = lastRole === "assistant" ? seqCounter + 1 : 0;
+      } else { seqCounter = 0; }
       lastRole = m.role;
       return {
         id: m.id, role: m.role as "user" | "assistant", content: m.content,
@@ -203,8 +171,7 @@ const Index = () => {
 
   const saveSession = async (firstMsg: string) => {
     const title = generateRoastTitle(firstMsg);
-    const { data } = await supabase
-      .from("chat_sessions").insert({ title, first_message: firstMsg, user_id: userId }).select().single();
+    const { data } = await supabase.from("chat_sessions").insert({ title, first_message: firstMsg, user_id: userId }).select().single();
     if (data) {
       const session: ChatSession = { id: data.id, title: data.title, firstMessage: data.first_message, createdAt: data.created_at };
       setSessions((prev) => [session, ...prev]);
@@ -217,12 +184,7 @@ const Index = () => {
   const addMemory = (text: string) => {
     if (!personalizationEnabled) return;
     const mem = extractMemory(text);
-    if (mem) {
-      setMemories((prev) => [
-        { id: Date.now().toString(), text: mem, createdAt: new Date().toISOString() },
-        ...prev,
-      ].slice(0, 50));
-    }
+    if (mem) setMemories((prev) => [{ id: Date.now().toString(), text: mem, createdAt: new Date().toISOString() }, ...prev].slice(0, 50));
   };
 
   const handleSend = useCallback(async (text: string, imageUrl?: string) => {
@@ -245,12 +207,11 @@ const Index = () => {
     let assistantSoFar = "";
     let soundPlayed = false;
     let editedImg: string | null = null;
-    let currentBubbleIndex = 0;
     let sentenceBuffer: string[] = [];
 
     const splitIntoMessages = (fullText: string): string[] => {
       const parts = fullText.split(/\n{2,}/).filter(p => p.trim());
-      if (parts.length > 1) return parts.slice(0, 3); // Max 3 bubbles
+      if (parts.length > 1) return parts.slice(0, 3);
       const lines = fullText.split(/\n/).filter(p => p.trim());
       if (lines.length > 1) return lines.slice(0, 3);
       return [fullText];
@@ -259,20 +220,13 @@ const Index = () => {
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
       if (!soundPlayed) { soundPlayed = true; playGlitchSound(); }
-      
-      // Split accumulated text into message bubbles
       sentenceBuffer = splitIntoMessages(assistantSoFar);
-      
       setMessages((prev) => {
-        // Remove all streaming messages first
         const base = prev.filter(m => !m.id.startsWith("streaming-"));
         const newBubbles: Message[] = sentenceBuffer.map((text, i) => ({
-          id: `streaming-${i}`,
-          role: "assistant" as const,
-          content: text.trim(),
+          id: `streaming-${i}`, role: "assistant" as const, content: text.trim(),
           isNew: i === sentenceBuffer.length - 1,
-          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
-          sequenceIndex: i,
+          editedImageUrl: i === 0 ? (editedImg || undefined) : undefined, sequenceIndex: i,
         }));
         return [...base, ...newBubbles];
       });
@@ -289,7 +243,7 @@ const Index = () => {
       });
       if (!resp.ok) {
         const errData = await resp.json().catch(() => null);
-        toast.error(errData?.error || "My circuits exploded. Try again. 💀");
+        toast.error(errData?.error || "Something went wrong. Try again.");
         setIsTyping(false);
         return;
       }
@@ -322,78 +276,61 @@ const Index = () => {
         }
       }
 
-      // Finalize: stagger reveal each bubble with delay + sound
       const finalMessages = splitIntoMessages(assistantSoFar);
       const ts = Date.now();
-      
-      // First, replace streaming with hidden finalized bubbles
+
       setMessages((prev) => {
         const base = prev.filter(m => !m.id.startsWith("streaming-"));
         const finalized: Message[] = finalMessages.map((text, i) => ({
-          id: `${ts}-${i}`,
-          role: "assistant" as const,
-          content: text.trim(),
+          id: `${ts}-${i}`, role: "assistant" as const, content: text.trim(),
           editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
-          sequenceIndex: i,
-          hidden: i > 0,
+          sequenceIndex: i, hidden: i > 0,
         }));
         return [...base, ...finalized];
       });
 
-      // Stagger reveal each bubble with delay + sound
       for (let i = 1; i < finalMessages.length; i++) {
         await new Promise(r => setTimeout(r, 400));
         playGlitchSound();
-        setMessages((prev) =>
-          prev.map(m => m.id === `${ts}-${i}` ? { ...m, hidden: false, isNew: true } : m)
-        );
+        setMessages((prev) => prev.map(m => m.id === `${ts}-${i}` ? { ...m, hidden: false, isNew: true } : m));
       }
-      // Save each bubble as a separate DB record
+
       if (currentSessionId) {
         for (let i = 0; i < finalMessages.length; i++) {
           await saveMessageToDb(currentSessionId, {
-            id: `${ts}-${i}`,
-            role: "assistant",
-            content: finalMessages[i].trim(),
+            id: `${ts}-${i}`, role: "assistant", content: finalMessages[i].trim(),
             editedImageUrl: i === 0 ? (editedImg || undefined) : undefined,
           });
         }
       }
     } catch (err) {
       console.error("Stream error:", err);
-      toast.error("Connection lost. Even the void rejects you. 💀");
+      toast.error("Connection lost. Try again.");
     } finally {
       setIsTyping(false);
     }
   }, [messages, playGlitchSound, activeSessionId, chatHistoryEnabled, personalizationEnabled, userId]);
 
   const handleRegenerate = useCallback(() => {
-    // Find the last user message and resend
     const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
     if (!lastUserMsg || isTyping) return;
-    // Remove all assistant messages after the last user message
     const lastUserIdx = messages.lastIndexOf(lastUserMsg);
-    const trimmed = messages.slice(0, lastUserIdx + 1);
-    setMessages(trimmed);
-    // Re-send
-    const text = lastUserMsg.content;
-    const img = lastUserMsg.imageUrl;
-    // Remove the user msg too since handleSend will re-add it
     setMessages(messages.slice(0, lastUserIdx));
-    handleSend(text, img);
+    handleSend(lastUserMsg.content, lastUserMsg.imageUrl);
   }, [messages, isTyping, handleSend]);
 
   const handleRoastHarder = useCallback(() => {
     if (isTyping) return;
     handleSend("That was weak. Roast me HARDER. Go full savage mode. No mercy.");
   }, [isTyping, handleSend]);
+
   const handleNewChat = () => { setActiveSessionId(null); setMessages([]); };
 
   const handleSelectSession = async (id: string) => {
     setActiveSessionId(id);
     if (isMobile) setMobileDrawerOpen(false);
     const loaded = await loadSessionMessages(id);
-    if (loaded.length > 0) { setMessages(loaded); }
+    if (loaded.length > 0) setMessages(loaded);
     else {
       const session = sessions.find((s) => s.id === id);
       setMessages(session?.firstMessage ? [{ id: "restored", role: "user" as const, content: session.firstMessage }] : []);
@@ -411,7 +348,7 @@ const Index = () => {
     handleSend("Roast my style based on this photo!", imageUrl);
   };
 
-  const handleClearMemories = () => { setMemories([]); toast.success("Memories cleared. But VOID-X never truly forgets. 💀"); };
+  const handleClearMemories = () => { setMemories([]); toast.success("Memories cleared."); };
   const handleToggleChatHistory = (val: boolean) => { setChatHistoryEnabled(val); localStorage.setItem("voidx-chat-history", String(val)); };
   const handleTogglePersonalization = (val: boolean) => { setPersonalizationEnabled(val); localStorage.setItem("voidx-personalization", String(val)); };
 
@@ -423,112 +360,86 @@ const Index = () => {
   };
 
   const handleSuggestionClick = (prompt: string) => {
-    if (prompt === "__ROAST_PHOTO__") {
-      setShowPhotoModal(true);
-    } else {
-      handleSend(prompt);
-    }
+    if (prompt === "__ROAST_PHOTO__") setShowPhotoModal(true);
+    else handleSend(prompt);
   };
 
   return (
-    <div className="flex h-[100dvh] bg-background relative scanlines overflow-hidden">
+    <div className="flex h-[100dvh] bg-background relative overflow-hidden">
       <ChatSidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-        onDeleteSession={handleDeleteSession}
-        onRoastMyStyle={() => setShowPhotoModal(true)}
-        collapsed={effectiveCollapsed}
-        onToggle={handleToggleSidebar}
-        memories={memories}
-        onClearMemories={handleClearMemories}
-        chatHistoryEnabled={chatHistoryEnabled}
-        onToggleChatHistory={handleToggleChatHistory}
-        personalizationEnabled={personalizationEnabled}
-        onTogglePersonalization={handleTogglePersonalization}
-        userProfile={userProfile}
-        onLogout={handleLogout}
-        onDeleteAllData={handleDeleteAllData}
+        sessions={sessions} activeSessionId={activeSessionId} onSelectSession={handleSelectSession}
+        onNewChat={handleNewChat} onDeleteSession={handleDeleteSession} onRoastMyStyle={() => setShowPhotoModal(true)}
+        collapsed={effectiveCollapsed} onToggle={handleToggleSidebar} memories={memories} onClearMemories={handleClearMemories}
+        chatHistoryEnabled={chatHistoryEnabled} onToggleChatHistory={handleToggleChatHistory}
+        personalizationEnabled={personalizationEnabled} onTogglePersonalization={handleTogglePersonalization}
+        userProfile={userProfile} onLogout={handleLogout} onDeleteAllData={handleDeleteAllData}
       />
       <div className="flex flex-col flex-1 min-w-0">
         {/* Mobile header */}
         {isMobile && (
-          <div className="flex items-center gap-2 p-2 border-b border-border">
-            <button onClick={handleToggleSidebar} className="p-2 rounded hover:bg-secondary text-muted-foreground">
+          <div className="flex items-center gap-2 p-3 border-b border-border bg-background/85 backdrop-blur-sm">
+            <button onClick={handleToggleSidebar} className="p-2 rounded-md hover:bg-secondary text-muted-foreground transition-all duration-200">
               <Menu className="w-5 h-5" />
             </button>
-            <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 rounded-xl" loading="eager" />
-            <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
+            <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 rounded-lg" loading="eager" />
+            <span className="text-xs font-bold text-foreground tracking-wider font-display">VOID-X</span>
           </div>
         )}
 
         {/* System status bar */}
-        <div className="flex justify-between items-center px-4 py-2 border-b border-border/50 text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm" role="status" aria-label="System status">
-          <span className="text-muted-foreground neon-text">ENCRYPTION: AES-256-ACTIVE</span>
-          <span className="text-muted-foreground neon-text flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_hsl(120_100%_45%/0.5)]" />
+        <div className="flex justify-between items-center px-4 py-2 border-b border-border text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm" role="status">
+          <span className="text-muted-foreground">ENCRYPTION: AES-256-ACTIVE</span>
+          <span className="text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             SYSTEM ONLINE
           </span>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 relative z-10">
-          <div className="max-w-[1000px] mx-auto px-2 sm:px-4">
-          {!hasMessages && !isTyping && (
-            <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
-              <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-4 opacity-60 rounded-2xl" loading="eager" />
-              <h1 className="font-display text-2xl font-bold tracking-tight neon-text text-foreground glitch mb-3">
-                VOID-X
-              </h1>
-              <p className="text-sm text-muted-foreground font-mono max-w-sm text-center mb-8 leading-relaxed">
-                {emptyChatPhrase}
-              </p>
-              {/* Suggestion Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl w-full">
-                {SUGGESTION_CARDS.map((card) => (
-                  <button
-                    key={card.title}
-                    onClick={() => handleSuggestionClick(card.prompt)}
-                    className="flex flex-col gap-2 p-4 rounded-xl border border-border/60 bg-card hover:bg-secondary/60 hover:border-primary/30 hover:shadow-[0_0_16px_hsl(120_100%_45%/0.1)] transition-all duration-200 text-left group active:scale-[0.97] min-h-[80px]"
-                  >
-                    <span className="text-sm font-bold text-foreground group-hover:neon-text transition-all duration-200">{card.title}</span>
-                    <span className="text-xs text-muted-foreground leading-snug">{card.description}</span>
-                  </button>
-                ))}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-6 relative z-10">
+          <div className="max-w-[760px] mx-auto px-3 sm:px-4">
+            {!hasMessages && !isTyping && (
+              <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
+                <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-5 opacity-50 rounded-2xl" loading="eager" />
+                <h1 className="font-display text-2xl font-bold tracking-tight text-foreground mb-2">VOID-X</h1>
+                <p className="text-sm text-muted-foreground font-display max-w-sm text-center mb-10 leading-relaxed">
+                  {emptyChatPhrase}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl w-full">
+                  {SUGGESTION_CARDS.map((card) => (
+                    <button key={card.title} onClick={() => handleSuggestionClick(card.prompt)}
+                      className="flex flex-col gap-2 p-4 rounded-lg border border-border bg-card hover:bg-secondary hover:border-primary/30 transition-all duration-200 text-left group active:scale-[0.98] min-h-[80px]">
+                      <span className="text-sm font-bold text-foreground font-display">{card.title}</span>
+                      <span className="text-xs text-muted-foreground leading-snug">{card.description}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {messages.map((msg, idx) => {
-            // Determine if this is the last message in an assistant sequence
-            const isLastInSequence = msg.role === "assistant" && !msg.hidden &&
-              (idx === messages.length - 1 || messages[idx + 1]?.role !== "assistant" || messages[idx + 1]?.hidden);
-            return (
-              <ChatMessage
-                key={msg.id}
-                role={msg.role}
-                content={msg.content}
-                isNew={msg.isNew}
-                imageUrl={msg.imageUrl}
-                editedImageUrl={msg.editedImageUrl}
-                showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
-                hidden={msg.hidden}
-                isLastInSequence={isLastInSequence}
-                onRegenerate={isLastInSequence ? handleRegenerate : undefined}
-                onRoastHarder={isLastInSequence ? handleRoastHarder : undefined}
-              />
-            );
-          })}
-          {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
-            <div className="px-4 py-3 flex gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center shadow-sm">
-                <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded-lg" loading="eager" />
+            {messages.map((msg, idx) => {
+              const isLastInSequence = msg.role === "assistant" && !msg.hidden &&
+                (idx === messages.length - 1 || messages[idx + 1]?.role !== "assistant" || messages[idx + 1]?.hidden);
+              return (
+                <ChatMessage key={msg.id} role={msg.role} content={msg.content} isNew={msg.isNew}
+                  imageUrl={msg.imageUrl} editedImageUrl={msg.editedImageUrl}
+                  showTimestamp={msg.sequenceIndex === undefined || msg.sequenceIndex === 0}
+                  hidden={msg.hidden} isLastInSequence={isLastInSequence}
+                  onRegenerate={isLastInSequence ? handleRegenerate : undefined}
+                  onRoastHarder={isLastInSequence ? handleRoastHarder : undefined}
+                />
+              );
+            })}
+
+            {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
+              <div className="px-4 py-3 flex gap-3 animate-fade-in">
+                <div className="w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center">
+                  <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded" loading="eager" />
+                </div>
+                <div className="bg-card border border-border rounded-lg px-4 py-3 text-sm text-muted-foreground font-mono">
+                  <span className="blink-cursor">{typingPhrase}</span>
+                </div>
               </div>
-              <div className="bg-card border border-primary/20 rounded-xl px-4 py-3 text-sm text-muted-foreground shadow-[0_2px_8px_hsl(120_100%_45%/0.06)]">
-                <span className="blink-cursor">{typingPhrase}</span>
-              </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
         <ChatInput onSend={handleSend} disabled={isTyping} />

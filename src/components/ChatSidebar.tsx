@@ -6,24 +6,9 @@ import PersonalizationPanel from "@/components/PersonalizationPanel";
 import ProfileMenu from "@/components/ProfileMenu";
 import voidxLogo from "@/assets/voidx-logo.png";
 
-type Memory = {
-  id: string;
-  text: string;
-  createdAt: string;
-};
-
-type ChatSession = {
-  id: string;
-  title: string;
-  firstMessage?: string;
-  createdAt: string;
-};
-
-type UserProfile = {
-  displayName: string;
-  handle: string;
-  avatarUrl: string | null;
-};
+type Memory = { id: string; text: string; createdAt: string };
+type ChatSession = { id: string; title: string; firstMessage?: string; createdAt: string };
+type UserProfile = { displayName: string; handle: string; avatarUrl: string | null };
 
 type ChatSidebarProps = {
   sessions: ChatSession[];
@@ -46,33 +31,15 @@ type ChatSidebarProps = {
 };
 
 const Logo = memo(() => (
-  <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain rounded-xl shadow-md" loading="eager" decoding="async" />
+  <img src={voidxLogo} alt="VOID-X" className="w-7 h-7 object-contain rounded-lg" loading="eager" decoding="async" />
 ));
 Logo.displayName = "Logo";
 
-const LogoSmall = memo(() => (
-  <img src={voidxLogo} alt="VOID-X" className="w-6 h-6 object-contain rounded-xl shadow-md" loading="eager" decoding="async" />
-));
-LogoSmall.displayName = "LogoSmall";
-
 const ChatSidebar = ({
-  sessions,
-  activeSessionId,
-  onSelectSession,
-  onNewChat,
-  onDeleteSession,
-  onRoastMyStyle,
-  collapsed,
-  onToggle,
-  memories,
-  onClearMemories,
-  chatHistoryEnabled,
-  onToggleChatHistory,
-  personalizationEnabled,
-  onTogglePersonalization,
-  userProfile,
-  onLogout,
-  onDeleteAllData,
+  sessions, activeSessionId, onSelectSession, onNewChat, onDeleteSession,
+  onRoastMyStyle, collapsed, onToggle, memories, onClearMemories,
+  chatHistoryEnabled, onToggleChatHistory, personalizationEnabled,
+  onTogglePersonalization, userProfile, onLogout, onDeleteAllData,
 }: ChatSidebarProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -80,41 +47,26 @@ const ChatSidebar = ({
 
   if (collapsed) {
     return (
-      <div className="hidden md:flex flex-col items-center py-3 px-1 border-r border-border bg-card/50 w-12 shrink-0">
+      <div className="hidden md:flex flex-col items-center py-3 px-1 border-r border-border bg-card w-12 shrink-0">
         <div className="flex flex-col items-center gap-2">
           <Logo />
-          <button
-            onClick={onToggle}
-            className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-            title="Expand sidebar"
-          >
+          <button onClick={onToggle} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200" title="Expand sidebar">
             <PanelLeft className="w-4 h-4" />
           </button>
         </div>
-        <button
-          onClick={onNewChat}
-          className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors mt-2"
-          title="New Chat"
-        >
+        <button onClick={onNewChat} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200 mt-2" title="New Chat">
           <Plus className="w-4 h-4" />
         </button>
-        <button
-          onClick={onRoastMyStyle}
-          className="p-2 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors mt-1"
-          title="Roast My Style"
-        >
+        <button onClick={onRoastMyStyle} className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200 mt-1" title="Roast My Style">
           <Camera className="w-4 h-4" />
         </button>
         <div className="flex-1" />
         <div className="mb-1">
           <ProfileMenu
-            displayName={userProfile.displayName}
-            handle={userProfile.handle}
-            avatarUrl={userProfile.avatarUrl}
+            displayName={userProfile.displayName} handle={userProfile.handle} avatarUrl={userProfile.avatarUrl}
             onOpenSettings={() => { onToggle(); setTimeout(() => setSettingsOpen(true), 100); }}
             onOpenPersonalization={() => { onToggle(); setTimeout(() => setPersonalizationOpen(true), 100); }}
-            onLogout={onLogout}
-            collapsed
+            onLogout={onLogout} collapsed
           />
         </div>
       </div>
@@ -123,92 +75,56 @@ const ChatSidebar = ({
 
   return (
     <>
-      {/* Mobile overlay */}
       <div className="md:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-40" onClick={onToggle} />
-
       <div className={cn(
-        "flex flex-col border-r border-border bg-card/50 w-64 shrink-0 transition-all z-50",
+        "flex flex-col border-r border-border bg-card w-64 shrink-0 transition-all duration-200 z-50",
         "fixed md:relative inset-y-0 left-0 md:inset-auto"
       )}>
-        <SettingsPanel
-          memories={memories}
-          onClearMemories={onClearMemories}
-          chatHistoryEnabled={chatHistoryEnabled}
-          onToggleChatHistory={onToggleChatHistory}
-          open={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          onDeleteAllData={onDeleteAllData}
-        />
+        <SettingsPanel memories={memories} onClearMemories={onClearMemories} chatHistoryEnabled={chatHistoryEnabled}
+          onToggleChatHistory={onToggleChatHistory} open={settingsOpen} onClose={() => setSettingsOpen(false)} onDeleteAllData={onDeleteAllData} />
+        <PersonalizationPanel personalizationEnabled={personalizationEnabled} onTogglePersonalization={onTogglePersonalization}
+          open={personalizationOpen} onClose={() => setPersonalizationOpen(false)} />
 
-        <PersonalizationPanel
-          personalizationEnabled={personalizationEnabled}
-          onTogglePersonalization={onTogglePersonalization}
-          open={personalizationOpen}
-          onClose={() => setPersonalizationOpen(false)}
-        />
-
-        {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <LogoSmall />
-            <span className="text-xs font-bold text-foreground neon-text tracking-wider">VOID-X</span>
+            <Logo />
+            <span className="text-xs font-bold text-foreground tracking-wider font-display">VOID-X</span>
           </div>
-          <button
-            onClick={onToggle}
-            className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <button onClick={onToggle} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-all duration-200">
             <PanelLeftClose className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Actions */}
         <div className="p-2 space-y-1">
-          <button
-            onClick={onNewChat}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded text-xs font-mono border border-border hover:bg-secondary hover:text-foreground text-muted-foreground transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New Chat
+          <button onClick={onNewChat}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-display font-medium border border-border hover:bg-secondary hover:text-foreground text-muted-foreground transition-all duration-200">
+            <Plus className="w-3.5 h-3.5" /> New Chat
           </button>
-          <button
-            onClick={onRoastMyStyle}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded text-xs font-mono border border-border hover:bg-secondary hover:text-foreground text-muted-foreground transition-colors"
-          >
-            <Camera className="w-3.5 h-3.5" />
-            Roast My Style 🔥
+          <button onClick={onRoastMyStyle}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-display font-medium border border-border hover:bg-secondary hover:text-foreground text-muted-foreground transition-all duration-200">
+            <Camera className="w-3.5 h-3.5" /> Roast My Style
           </button>
         </div>
 
-        {/* Sessions list */}
         <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
           {sessions.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4 px-2">
-              No chat history yet.<br />Start roasting. 💀
-            </p>
+            <p className="text-xs text-muted-foreground text-center py-4 px-2">No history yet.</p>
           )}
           {sessions.map((session) => (
-            <div
-              key={session.id}
-              onMouseEnter={() => setHoveredId(session.id)}
-              onMouseLeave={() => setHoveredId(null)}
+            <div key={session.id}
+              onMouseEnter={() => setHoveredId(session.id)} onMouseLeave={() => setHoveredId(null)}
               onClick={() => onSelectSession(session.id)}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded cursor-pointer text-xs font-mono transition-colors group",
+                "flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer text-xs font-display transition-all duration-200 group",
                 activeSessionId === session.id
                   ? "bg-secondary text-foreground border border-border"
                   : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-              )}
-            >
+              )}>
               <MessageSquare className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate flex-1">{session.title}</span>
               {hoveredId === session.id && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteSession(session.id);
-                  }}
-                  className="p-0.5 rounded hover:bg-destructive/20 text-destructive transition-colors"
-                >
+                <button onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
+                  className="p-0.5 rounded hover:bg-destructive/20 text-destructive transition-all duration-200">
                   <Trash2 className="w-3 h-3" />
                 </button>
               )}
@@ -216,16 +132,9 @@ const ChatSidebar = ({
           ))}
         </div>
 
-        {/* Profile at bottom */}
         <div className="p-2 border-t border-border">
-          <ProfileMenu
-            displayName={userProfile.displayName}
-            handle={userProfile.handle}
-            avatarUrl={userProfile.avatarUrl}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenPersonalization={() => setPersonalizationOpen(true)}
-            onLogout={onLogout}
-          />
+          <ProfileMenu displayName={userProfile.displayName} handle={userProfile.handle} avatarUrl={userProfile.avatarUrl}
+            onOpenSettings={() => setSettingsOpen(true)} onOpenPersonalization={() => setPersonalizationOpen(true)} onLogout={onLogout} />
         </div>
       </div>
     </>

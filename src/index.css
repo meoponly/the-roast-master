@@ -92,12 +92,16 @@
     color: hsl(var(--terminal-green));
   }
 
+  .text-roast-red {
+    color: hsl(var(--roast-red));
+  }
+
   .accent-glow {
-    box-shadow: 0 0 20px hsl(var(--accent-glow) / 0.15);
+    box-shadow: 0 0 20px hsl(var(--accent-glow) / 0.12), 0 0 40px hsl(var(--accent-glow) / 0.05);
   }
 
   .accent-glow-hover:hover {
-    box-shadow: 0 0 24px hsl(var(--accent-glow) / 0.25);
+    box-shadow: 0 0 24px hsl(var(--accent-glow) / 0.2), 0 0 48px hsl(var(--accent-glow) / 0.08);
   }
 
   .scanlines-output::after {
@@ -108,8 +112,8 @@
       0deg,
       transparent,
       transparent 3px,
-      hsl(var(--accent-glow) / 0.015) 3px,
-      hsl(var(--accent-glow) / 0.015) 4px
+      hsl(var(--accent-glow) / 0.02) 3px,
+      hsl(var(--accent-glow) / 0.02) 4px
     );
     pointer-events: none;
     z-index: 1;
@@ -118,8 +122,8 @@
 
   .grid-bg {
     background-image:
-      linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px);
+      linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
@@ -127,6 +131,32 @@
     content: '_';
     animation: blink 1s step-end infinite;
     color: hsl(var(--primary));
+    text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+  }
+
+  .fierce-border {
+    border: 1px solid hsl(var(--border));
+    transition: border-color 200ms ease;
+  }
+
+  .fierce-border:hover {
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.3);
+  }
+
+  .card-fierce {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    transition: all 200ms ease;
+  }
+
+  .card-fierce:hover {
+    border-color: hsl(var(--primary) / 0.25);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.08);
   }
 }
 
@@ -136,13 +166,18 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInBody {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .animate-fade-in {
@@ -155,33 +190,34 @@ body {
 
 @keyframes glitch-in {
   0% { transform: translate(-2px, 1px); opacity: 0; }
-  30% { transform: translate(1px, -1px); opacity: 0.7; }
-  50% { transform: translate(0); opacity: 1; }
+  20% { transform: translate(1px, -1px); opacity: 0.5; }
+  40% { transform: translate(-1px, 0); opacity: 0.8; }
+  60% { transform: translate(0); opacity: 1; }
   100% { transform: translate(0); opacity: 1; }
 }
 
 .glitch-enter {
-  animation: glitch-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation: glitch-in 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-/* Scrollbar */
+/* Scrollbar — darker, thinner */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
-  border-radius: 3px;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Focus visible */
 *:focus-visible {
-  outline: 2px solid hsl(var(--primary) / 0.6);
-  outline-offset: 3px;
+  outline: 2px solid hsl(var(--primary) / 0.5);
+  outline-offset: 2px;
   border-radius: 4px;
 }

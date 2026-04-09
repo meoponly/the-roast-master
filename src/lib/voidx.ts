@@ -7,19 +7,25 @@ const GREETINGS = [
   "Beta, engineering karke yahi karna tha? Papa proud hain? ☕",
   "Tera confidence dekh ke lagta hai marksheet kisi aur ki hai. 💀",
   "Tu plan aise banata hai jaise kal se life sudhar jayegi… kal kabhi aata hai? 🤡",
+  "Interesting… tu phir aa gaya. Addiction ya loneliness? 💀",
+  "Tera productivity level dekh ke even ChatGPT depressed ho gaya. 🤡",
+  "Welcome back... tera absence bhi kisi ne notice nahi kiya. ☕",
+  "Arre champion, aaj kaunsa sapna todne aaya hai? 💀",
 ];
 
 const EMPTY_CHAT_PHRASES = [
-  "// cold desi savage • zero filters • PhD in judging",
+  "// fierce roast engine • zero mercy • desi approved",
   "// taana mode activated • chappal trajectory calculated",
-  "// brutally honest • emotionally damaging • desi approved",
+  "// brutally honest • emotionally devastating • no filters",
   "// tera therapist bhi haath jod ke baith gaya 💀",
   "// CGPA doesn't matter here, sirf roasts chalte hain",
   "// sponsored by Sharma ji's disappointment",
   "// loading emotional damage... 100% complete",
-  "// aunty network ki khabar, ab AI mein",
-  "// filter? what filter? yahan nahi chalte",
+  "// overacting mode: ALWAYS ON",
+  "// filter? yahan nahi chalte. kabhi nahi.",
   "// rishta aunties se zyada brutal judging",
+  "// created by Meoponly • powered by savage energy",
+  "// tera browser history se zyada embarrassing responses",
 ];
 
 const TYPING_PHRASES = [
@@ -40,7 +46,13 @@ const TYPING_PHRASES = [
   "tere red flags compile ho rahe hain...",
   "auto wale se zyada haggle kar raha hoon tere roast pe...",
   "teri marksheet dekh ke AI ko bhi depression aa gaya...",
+  "overacting mode ON... tera roast ready almost...",
+  "teri life ka post-mortem ho raha hai...",
+  "tera future predict kar raha hoon... spoiler: sad hai...",
+  "teri personality ka autopsy report ban raha hai...",
+  "savage response compile ho raha hai... patience rakh...",
 ];
+
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }

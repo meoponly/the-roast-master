@@ -24,28 +24,28 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-2",
+        "flex gap-3 px-4 py-1.5",
         isUser ? "justify-end animate-fade-in" : "justify-start",
         !isUser && isNew ? "glitch-enter" : !isUser ? "animate-fade-in" : ""
       )}
     >
       {!isUser && (
         <div className={cn(
-          "flex-shrink-0 w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center text-primary text-[10px] font-bold font-mono tracking-wider",
+          "flex-shrink-0 w-7 h-7 rounded-md bg-card border border-border flex items-center justify-center text-primary text-[9px] font-bold font-mono tracking-wider text-glow",
           !showTimestamp && "invisible"
         )}>
           VX
         </div>
       )}
-      <div className={cn("flex flex-col gap-1.5", isUser ? "max-w-[65%]" : "max-w-[65%]")}>
+      <div className={cn("flex flex-col gap-1", isUser ? "max-w-[65%]" : "max-w-[65%]")}>
         {!isUser && showTimestamp && (
-          <span className="text-[10px] text-muted-foreground font-mono tracking-wider ml-1">
+          <span className="text-[9px] text-muted-foreground font-mono tracking-wider ml-1 uppercase">
             VOID-X • {timestamp}
           </span>
         )}
         <div
           className={cn(
-            "rounded-lg px-4 py-3 text-sm leading-relaxed transition-colors relative",
+            "rounded-lg px-4 py-2.5 text-sm leading-relaxed transition-all duration-200 relative",
             isUser
               ? "bg-secondary text-foreground border border-border"
               : "bg-card text-foreground border border-border scanlines-output"
@@ -54,7 +54,7 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
           {imageUrl && (
             <div className="mb-3 relative">
               <img src={imageUrl} alt="Uploaded style" className="rounded-md max-h-48 object-cover border border-border" loading="lazy" />
-              <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
+              <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[9px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono tracking-wider">
                 <Flame className="w-3 h-3" />
                 STYLE ROAST
               </div>
@@ -62,26 +62,29 @@ const ChatMessage = ({ role, content, isNew, imageUrl, editedImageUrl, showTimes
           )}
           {editedImageUrl && (
             <div className="mb-3 relative">
-              <img src={editedImageUrl} alt="VOID-X's version" className="rounded-md max-h-64 object-cover border border-accent/40" loading="lazy" />
-              <div className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
+              <img src={editedImageUrl} alt="VOID-X's version" className="rounded-md max-h-64 object-cover border border-primary/20" loading="lazy" />
+              <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 font-mono tracking-wider">
                 <Scissors className="w-3 h-3" />
                 MAKEOVER
               </div>
             </div>
           )}
-          <p className={cn("whitespace-pre-wrap leading-relaxed", !isUser && "font-mono text-[13px]")}>{content}</p>
+          <p className={cn(
+            "whitespace-pre-wrap leading-relaxed",
+            !isUser && "font-mono text-[13px]"
+          )}>{content}</p>
         </div>
         {!isUser && isLastInSequence && (
           <MessageActions content={content} onRegenerate={onRegenerate} onRoastHarder={onRoastHarder} />
         )}
         {isUser && (
-          <span className="text-[10px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
+          <span className="text-[9px] text-muted-foreground font-mono tracking-wider mr-1 self-end">
             {timestamp}
           </span>
         )}
       </div>
       {isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-md bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[10px] font-mono">
+        <div className="flex-shrink-0 w-7 h-7 rounded-md bg-secondary border border-border flex items-center justify-center text-muted-foreground text-[9px] font-mono">
           {">"}_
         </div>
       )}

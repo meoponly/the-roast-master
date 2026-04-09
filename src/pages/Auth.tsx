@@ -71,9 +71,9 @@ const Auth = () => {
 
       <div className="w-full max-w-sm mx-auto relative z-10">
         <div className="text-center mb-8">
-          <img src={voidxLogo} alt="VOID-X" className="w-14 h-14 mx-auto mb-5 rounded-2xl" />
-          <h1 className="font-display text-3xl font-bold text-foreground tracking-tight">VOID-X</h1>
-          <p className="text-sm text-muted-foreground mt-2">Enter the void. Get roasted.</p>
+          <img src={voidxLogo} alt="VOID-X" className="w-12 h-12 mx-auto mb-4 rounded-2xl opacity-80" />
+          <h1 className="font-display text-2xl font-bold text-foreground tracking-tight text-glow">VOID-X</h1>
+          <p className="text-xs text-muted-foreground mt-2 font-mono tracking-wide">// enter the void. get destroyed.</p>
         </div>
 
         <div className="bg-card border border-border rounded-xl p-6 space-y-5">

@@ -402,17 +402,17 @@ const Index = () => {
           <div className="max-w-[760px] mx-auto px-3 sm:px-4">
             {!hasMessages && !isTyping && (
               <div className="flex flex-col items-center justify-center h-full animate-fade-in px-4">
-                <img src={voidxLogo} alt="VOID-X" className="w-16 h-16 mb-5 opacity-50 rounded-2xl" loading="eager" />
-                <h1 className="font-display text-2xl font-bold tracking-tight text-foreground mb-2">VOID-X</h1>
-                <p className="text-sm text-muted-foreground font-display max-w-sm text-center mb-10 leading-relaxed">
+                <img src={voidxLogo} alt="VOID-X" className="w-14 h-14 mb-4 opacity-40 rounded-2xl" loading="eager" />
+                <h1 className="font-display text-xl font-bold tracking-tight text-foreground mb-1.5 text-glow">VOID-X</h1>
+                <p className="text-xs text-muted-foreground font-mono max-w-sm text-center mb-8 leading-relaxed tracking-wide">
                   {emptyChatPhrase}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-xl w-full">
                   {SUGGESTION_CARDS.map((card) => (
                     <button key={card.title} onClick={() => handleSuggestionClick(card.prompt)}
-                      className="flex flex-col gap-2 p-4 rounded-lg border border-border bg-card hover:bg-secondary hover:border-primary/30 transition-all duration-200 text-left group active:scale-[0.98] min-h-[80px]">
-                      <span className="text-sm font-bold text-foreground font-display">{card.title}</span>
-                      <span className="text-xs text-muted-foreground leading-snug">{card.description}</span>
+                      className="flex flex-col gap-1.5 p-3.5 rounded-lg card-fierce text-left group active:scale-[0.98] min-h-[72px]">
+                      <span className="text-xs font-bold text-foreground font-display tracking-wide">{card.title}</span>
+                      <span className="text-[11px] text-muted-foreground leading-snug">{card.description}</span>
                     </button>
                   ))}
                 </div>
@@ -434,11 +434,11 @@ const Index = () => {
             })}
 
             {isTyping && !messages.some(m => m.id.startsWith("streaming-")) && (
-              <div className="px-4 py-3 flex gap-3 animate-fade-in">
-                <div className="w-8 h-8 rounded-md bg-card border border-border flex items-center justify-center">
-                  <img src={voidxLogo} alt="VX" className="w-5 h-5 rounded" loading="eager" />
+              <div className="px-4 py-2 flex gap-3 animate-fade-in">
+                <div className="w-7 h-7 rounded-md bg-card border border-border flex items-center justify-center">
+                  <span className="text-primary text-[9px] font-bold font-mono text-glow">VX</span>
                 </div>
-                <div className="bg-card border border-border rounded-lg px-4 py-3 text-sm text-muted-foreground font-mono">
+                <div className="bg-card border border-border rounded-lg px-4 py-2.5 text-xs text-muted-foreground font-mono tracking-wide">
                   <span className="blink-cursor">{typingPhrase}</span>
                 </div>
               </div>

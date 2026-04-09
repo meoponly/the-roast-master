@@ -387,10 +387,13 @@ const Index = () => {
         )}
 
         {/* System status bar */}
-        <div className="flex justify-between items-center px-4 py-2 border-b border-border text-[10px] font-mono tracking-widest z-20 relative bg-background/80 backdrop-blur-sm" role="status">
-          <span className="text-muted-foreground">ENCRYPTION: AES-256-ACTIVE</span>
+        <div className="flex justify-between items-center px-4 py-1.5 border-b border-border text-[9px] font-mono tracking-[0.15em] z-20 relative bg-card/50 backdrop-blur-sm" role="status">
           <span className="text-muted-foreground flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+            ENCRYPTION: AES-256-ACTIVE
+          </span>
+          <span className="text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1 h-1 rounded-full bg-primary" style={{ animation: 'pulse-glow 2s ease-in-out infinite' }} />
             SYSTEM ONLINE
           </span>
         </div>
